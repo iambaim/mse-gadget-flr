@@ -1,0 +1,55 @@
+; gadget printfile, created in 2019-03-04
+;
+;
+[component]
+type	stockstdprinter
+stockname	had
+printfile	FIT/out.fit/had.std
+printatstart 1
+yearsandsteps	all	1
+[component]
+type	stockprinter
+stocknames	had
+areaaggfile	FIT/print.aggfiles/had.area.agg
+ageaggfile	FIT/print.aggfiles/had.allages.agg
+lenaggfile	FIT/print.aggfiles/had.len.agg
+printfile	FIT/out.fit/had.full
+printatstart	1
+yearsandsteps	all	1
+[component]
+type	predatorpreyprinter
+predatornames	comm survey future
+preynames	had
+areaaggfile	FIT/print.aggfiles/had.area.agg
+ageaggfile	FIT/print.aggfiles/had.age.agg
+lenaggfile	FIT/print.aggfiles/had.alllen.agg
+printfile	FIT/out.fit/had.prey
+yearsandsteps	all all
+[component]
+type	predatorpreyprinter
+predatornames	comm
+preynames	had
+areaaggfile	FIT/print.aggfiles/had.area.agg
+ageaggfile	FIT/print.aggfiles/had.allages.agg
+lenaggfile	FIT/print.aggfiles/had.len.agg
+printfile	FIT/out.fit/had.prey.comm
+yearsandsteps	all all
+[component]
+type	predatorpreyprinter
+predatornames	survey
+preynames	had
+areaaggfile	FIT/print.aggfiles/had.area.agg
+ageaggfile	FIT/print.aggfiles/had.allages.agg
+lenaggfile	FIT/print.aggfiles/had.len.agg
+printfile	FIT/out.fit/had.prey.survey
+yearsandsteps	all all
+[component]
+type	predatorpreyprinter
+predatornames	future
+preynames	had
+areaaggfile	FIT/print.aggfiles/had.area.agg
+ageaggfile	FIT/print.aggfiles/had.allages.agg
+lenaggfile	FIT/print.aggfiles/had.len.agg
+printfile	FIT/out.fit/had.prey.future
+yearsandsteps	all all
+;

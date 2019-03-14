@@ -1,0 +1,52 @@
+; Gadget version 2.2.00-BETA running on ASUS-SO56V6G Sun Mar 03 22:29:57 2019
+; Likelihood output file for the likelihood component si50to60
+; year-step-area-label-number
+1985    1   allareas     mlen50     11743866
+1985    1   allareas     mlen55     10449538
+1985    1   allareas     mlen60    7360178.9
+1986    1   allareas     mlen50    7979827.2
+1986    1   allareas     mlen55    7510439.6
+1986    1   allareas     mlen60    6648510.5
+1987    1   allareas     mlen50     10637161
+1987    1   allareas     mlen55    6759637.4
+1987    1   allareas     mlen60    4696182.5
+1988    1   allareas     mlen50     14970723
+1988    1   allareas     mlen55    8847263.7
+1988    1   allareas     mlen60    5044735.6
+1989    1   allareas     mlen50     26512337
+1989    1   allareas     mlen55     14682307
+1989    1   allareas     mlen60    6924204.1
+1990    1   allareas     mlen50     21193552
+1990    1   allareas     mlen55     18075556
+1990    1   allareas     mlen60     11007788
+1991    1   allareas     mlen50     11020331
+1991    1   allareas     mlen55     11106026
+1991    1   allareas     mlen60    9257444.1
+1992    1   allareas     mlen50    7957073.3
+1992    1   allareas     mlen55    6113214.8
+1992    1   allareas     mlen60    5099174.4
+1993    1   allareas     mlen50     13564264
+1993    1   allareas     mlen55    6593144.2
+1993    1   allareas     mlen60    3352731.1
+1994    1   allareas     mlen50     22078664
+1994    1   allareas     mlen55     11903520
+1994    1   allareas     mlen60    5082820.5
+1995    1   allareas     mlen50     18848157
+1995    1   allareas     mlen55     13632152
+1995    1   allareas     mlen60    7464335.5
+1996    1   allareas     mlen50     14675368
+1996    1   allareas     mlen55     10995654
+1996    1   allareas     mlen60    7281985.9
+1997    1   allareas     mlen50     14685326
+1997    1   allareas     mlen55    9713130.2
+1997    1   allareas     mlen60    5856900.7
+1998    1   allareas     mlen50     13659876
+1998    1   allareas     mlen55     10298781
+1998    1   allareas     mlen60    6669345.3
+1999    1   allareas     mlen50     17360165
+1999    1   allareas     mlen55     11398568
+1999    1   allareas     mlen60    6970228.4
+; Regression information for area allareas
+; mlen50 intercept -6.4906434 slope 1 sse 1.1505275
+; mlen55 intercept -6.5596787 slope 1 sse 1.6478612
+; mlen60 intercept -6.6372828 slope 1 sse 2.0055658

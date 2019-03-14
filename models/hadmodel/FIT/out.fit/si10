@@ -1,0 +1,20 @@
+; Gadget version 2.2.00-BETA running on ASUS-SO56V6G Sun Mar 03 22:29:57 2019
+; Likelihood output file for the likelihood component si10
+; year-step-area-label-number
+1985    1   allareas     mlen10    3622843.6
+1986    1   allareas     mlen10    9934232.2
+1987    1   allareas     mlen10    3624658.4
+1988    1   allareas     mlen10    2003394.1
+1989    1   allareas     mlen10    1725319.1
+1990    1   allareas     mlen10    4743698.8
+1991    1   allareas     mlen10    8122981.7
+1992    1   allareas     mlen10    4437904.1
+1993    1   allareas     mlen10    3633502.9
+1994    1   allareas     mlen10    4724670.6
+1995    1   allareas     mlen10    2608027.9
+1996    1   allareas     mlen10    5887699.2
+1997    1   allareas     mlen10    1689505.8
+1998    1   allareas     mlen10    3183179.5
+1999    1   allareas     mlen10    9878871.8
+; Regression information for area allareas
+; mlen10 intercept -9.030622 slope 1 sse 4.5148467
