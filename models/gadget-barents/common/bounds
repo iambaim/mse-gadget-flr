@@ -1,0 +1,6 @@
+; 
+;	BoundLikelihood (”Penalty”) file
+;
+; the defaul values are used
+;switch        power         lowerW       upperW
+default        2             10000        10000

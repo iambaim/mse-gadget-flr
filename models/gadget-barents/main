@@ -1,0 +1,19 @@
+;
+; Multispecies Barents Sea model Linearfleet formulation
+;
+; common
+;
+timefile common/time    ; specifying simualtion years
+areafile common/area    ; specifying simulation areas
+printfile common/printfile.cod common/printfile.capelin ;common/printfile.herring ; specifying print types
+[stock]
+stockfiles  cod/cod.zero cod/cod.onetwo cod/cod.imm cod/cod.mat capelin/capelin.imm capelin/capelin.mat
+[tagging]
+; no tagging data for this model
+[otherfood]
+otherfoodfiles common/food.constant
+[fleet]
+fleetfiles fleets/cod.fleets fleets/capelin.fleets
+[likelihood]
+likelihoodfiles  common/likelihood
+

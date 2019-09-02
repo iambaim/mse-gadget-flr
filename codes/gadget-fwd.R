@@ -1,4 +1,4 @@
-## Gadget forward function
+# Gadget forward function
 pre.gadget <- function(...)
 {
   	# parse ... for ctrl
@@ -46,10 +46,10 @@ pre.gadget <- function(...)
 	}
 }
 
-## Gadget forward function
+# Gadget forward function
 fwd.gadget <- function(...)
 {
-	## parse ... for ctrl
+	# parse ... for ctrl
     	args=list(...)
 	year <- as.character(args$year)
 	print(paste("Now running gadget for ", year))
@@ -72,15 +72,17 @@ fwd.gadget <- function(...)
 	gadgetOut[[year]] <<- runYear()
 }
 
-## compile output onbjects from the Gadget run (e.g., collect stats, etc.)
+# Post Gadget run (e.g., collect stats, etc.)
 post.gadget <- function(object, objectIdx, ...)
 {
-	## parse ... for ctrl
+	# parse ... for ctrl
 	args=list(...)
+
 	year <- as.character(args$year)
+
 	print(paste("Now inserting gadget data for", year))
 
-	## Update object (FLStock)
+	# Update object (FLStock)
 	updated <- updateFLStock(args$stkName, gadgetOut[[year]], year, object, objectIdx)
 	object <- updated$stk
 	objectIdx <- updated$idx

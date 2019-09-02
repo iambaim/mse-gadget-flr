@@ -1,0 +1,84 @@
+;
+;	Base file for age 3+ immature capelin
+;
+stockname              capelin.imm
+livesonareas           1 
+minage                 0
+maxage                 3
+minlength              0
+maxlength              20
+dl                     0.5; step size for the length groups
+refweightfile          capelin/capelin.refw
+growthandeatlengths    agg/capelin/capelin.len_imm.agg
+
+;	Growth
+;
+doesgrow               1
+growthfunction   lengthvbsimple
+growthparameters       #capelin.linf  #capelin.k   0.0000009187728  3.598994 
+;
+;	Growth implementation
+; a statistical distribution of actual growths around that mean.
+;
+beta ( * 100 #capelin.betabin)
+maxlengthgroupgrowth	5;  the maximum number of length categories a fish can grow in a single timestep
+
+;weightgrowthfile    capelin.data/capelin.grow.weights
+
+
+;	Natural mortality
+;
+;            age    		0	1   2   3    
+naturalmortality    #capelin.imm.m_age0 0.2 0.2 0.2
+
+;	the stock acting as prey
+;
+iseaten			1
+preylengths            agg/capelin/capelin.len_imm.agg
+
+;	the stock acting as a predator
+;
+doeseat    0
+
+;	initial conditions of the stock
+;	
+initialconditions 
+numbers
+minage            0
+maxage            3
+minlength         0
+maxlength         20
+dl                0.5; step size for the length groups
+initstockfile     capelin/capelin.imm.init
+
+;	migration of the stock
+;	
+doesmigrate       0
+
+;	maturation of the stock
+;	
+doesmature	   1
+maturityfunction    newconstant	
+maturityfile        capelin/capelin.maturity
+
+;	movement (transition) of the stock
+;
+doesmove 	1
+transitionstocksandratios	capelin.mat  1
+transitionstep 	4 
+
+;	recruitment of the stock
+;
+doesrenew         1
+minlength         0
+maxlength         10
+dl                0.5
+normalparamfile   capelin/capelin.rec.age0
+
+;	spawning of the stock
+;
+doesspawn 	      0
+
+;	straying of the stock
+;
+doesstray	0

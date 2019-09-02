@@ -1,0 +1,49 @@
+;
+;	cod spawning migration timestep
+;
+;<year> <step> <migration matrix>
+;
+1982	1	cod.spawn.migrate
+1983	1	cod.spawn.migrate
+1984	1	cod.spawn.migrate
+1985	1	cod.spawn.migrate
+1986	1	cod.spawn.migrate
+1987	1	cod.spawn.migrate
+1988	1	cod.spawn.migrate
+1989	1	cod.spawn.migrate
+1990	1	cod.spawn.migrate
+1991	1	cod.spawn.migrate
+1992	1	cod.spawn.migrate
+1993	1	cod.spawn.migrate
+1994	1	cod.spawn.migrate
+1995	1	cod.spawn.migrate
+1996	1	cod.spawn.migrate
+1997	1	cod.spawn.migrate
+1998	1	cod.spawn.migrate
+1999	1	cod.spawn.migrate
+2000	1	cod.spawn.migrate
+2001	1	cod.spawn.migrate
+2002	1	cod.spawn.migrate
+2003	1	cod.spawn.migrate
+2004	1	cod.spawn.migrate
+2005	1	cod.spawn.migrate
+2006	1	cod.spawn.migrate
+2007	1	cod.spawn.migrate
+2008	1	cod.spawn.migrate
+2009	1	cod.spawn.migrate
+2010	1	cod.spawn.migrate
+2011	1	cod.spawn.migrate
+2012	1	cod.spawn.migrate
+2013	1	cod.spawn.migrate
+2014	1	cod.spawn.migrate
+2015	1	cod.spawn.migrate
+2016	1	cod.spawn.migrate
+2017	1	cod.spawn.migrate
+2018	1	cod.spawn.migrate
+2019	1	cod.spawn.migrate
+2020	1	cod.spawn.migrate
+2021	1	cod.spawn.migrate
+2022	1	cod.spawn.migrate
+2023	1	cod.spawn.migrate
+2024	1	cod.spawn.migrate
+2025	1	cod.spawn.migrate

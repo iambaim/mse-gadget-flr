@@ -1,9 +1,4 @@
-## hcr_nafo is a function that produces a HCR that can have one or two stages. 
-## It has a Blim1 value (the one corresponding to precautionary approach Blim concept), below which F is zero. When SSB is 
-## between Blim1 and Btrigger1, F will be between 0 and Ftarget1; when SSB is bewteeen Btrigger1 and Blim2 (not related with 
-## the precautionary approach) F will be Ftarget1; when SSB is between Blim2 and Btrigger2, F will be between Ftarget1 and Ftarget2; 
-## and finally, when SSB is above Btrigger2, F will be equal to ftarget2. This would be a two stages HCR. If we want it only one stage 
-## (tipycal NAFO HCR, then Blim2 has to be defined as NULL)
+# hcr_nafo is a function that produces a HCR that can have one or two stages. It has a Blim1 value (the one corresponding to precautionary approach Blim concept), below which F is zero. When SSB is between Blim1 and Btrigger1, F will be between 0 and Ftarget1; when SSB is bewteeen Btrigger1 and Blim2 (not related with the precautionary approach) F will be Ftarget1; when SSB is between Blim2 and Btrigger2, F will be between Ftarget1 and Ftarget2; and finally, when SSB is above Btrigger2, F will be equal to ftarget2. This would be a two stages HCR. If we want it only one stage (tipycal NAFO HCR, then Blim2 has to be defined as NULL)
 nafo.hcr <- function (stk, fmin, ftarget1, blim1, btrigger1, ftarget2, blim2, btrigger2, ssb_lag, genArgs, tracking)
 {
    ay <- genArgs$ay

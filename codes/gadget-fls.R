@@ -1,6 +1,4 @@
-## 
-
-## Gadget model helper functions
+# Helper function
 updateFLStock <- function(stockTitle, out, gadgetYear, fl_stock, fl_index) {
 	getStocks <- function(stockTitle, out, suffix=".stocks") {
 		xtemp <- list()
@@ -139,6 +137,15 @@ updateFLStock <- function(stockTitle, out, gadgetYear, fl_stock, fl_index) {
 	## Calculate mature stocks number
 	stock.mature.n <- aggregate(number ~ year + area + age, data=stock.mature.data$stk, FUN=sum)
 	mature <- stock.n
+
+	# Check whether we have the same object, if not do some manipulation first
+	if(nrow(stock.mature.n) != nrow(stock.n)) {
+		tmp_mat <- anti_join(stock.n, stock.mature.n)
+		tmp_mat$number <- 0
+		tmp_mat <- rbind(tmp_mat, stock.mature.n)
+		stock.mature.n <- tmp_mat[order(tmp_mat$year, tmp_mat$area, tmp_mat$age),]
+	}
+
 	mature[,ncol(mature)] <- stock.mature.n[,ncol(stock.mature.n)] / stock.n[,ncol(stock.n)]
 
 	# Process the fishing mortality matrix (F)
@@ -154,70 +161,81 @@ updateFLStock <- function(stockTitle, out, gadgetYear, fl_stock, fl_index) {
 
 	print("Putting into FLStock")
 
-	## Put everything into FLStock	
-	## Catch
-	print("Catches")
-	fl_stock@catch[,gadgetYear,,,,iter] <- catch[,ncol(catch)]
-	fl_stock@catch.n[catch.n[,"age"],gadgetYear,,,,iter] <- catch.n[,ncol(catch.n)]
-	fl_stock@catch.wt[catch.wt[,"age"],gadgetYear,,,,iter] <- catch.wt[,ncol(catch.wt)]
-	
-	print("Landings")
-	# Landings
-	fl_stock@landings[,gadgetYear,,,,iter] <- catch[,ncol(catch)]
-	fl_stock@landings.n[catch.n[,"age"],gadgetYear,,,,iter] <- catch.n[,ncol(catch.n)]
-	fl_stock@landings.wt[catch.wt[,"age"],gadgetYear,,,,iter] <- catch.wt[,ncol(catch.wt)]
+	areas <- dimnames(fl_stock)$area
 
-	print("Discards")
-	# Discards (use catch weight as discard weights)
-	fl_stock@discards[,gadgetYear,,,,iter] <- 0
-	fl_stock@discards.n[,gadgetYear,,,,iter] <- 0
-	fl_stock@discards.wt[,gadgetYear,,,,iter] <- catch.wt[,ncol(catch.wt)]
+	for( area in areas ) {
 
-	print("Stocks")
+		print(paste("Area: ", area))
 
-	# Stocks
-	fl_stock@stock[,gadgetYear,,,,iter] <- stock[,ncol(stock)]
-	fl_stock@stock.n[stock.n[,"age"], gadgetYear,,,,iter] <- stock.n[,ncol(stock.n)]
-	fl_stock@stock.wt[stock.n[,"age"], gadgetYear,,,,iter] <- stock.wt[,ncol(stock.wt)]
-	
-	# SSB
-	#fl_stock@stock <- FLQuant(stock[,ncol(stock)], dimnames=list(age="all", year=gadgetYear))
+		# Put everything into FLStock	
+		# Catch
 
-	# Recruitment
-	#fl_stock@stock <- FLQuant(stock[,ncol(stock)], dimnames=list(age="all", year=gadgetYear))
+		print("Catches")
 
-  ## Maturity
-	fl_stock@mat[mature[,"age"], gadgetYear,,,,iter] <- mature[,ncol(mature)]
+		fl_stock@catch[,gadgetYear,,,area,iter] <- catch[catch[["area"]]==area, ncol(catch)]
+		fl_stock@catch.n[catch.n[,"age"],gadgetYear,,,area,iter] <- catch.n[catch.n[["area"]]==area, ncol(catch.n)]
+		fl_stock@catch.wt[catch.wt[,"age"],gadgetYear,,,area,iter] <- catch.wt[catch.wt[["area"]]==area, ncol(catch.wt)]
 
-	## Mortality (in harvest with unit f)
-	mortF[is.nan(mortF[,ncol(mortF)]), ncol(mortF)] <- 0
-	fl_stock@harvest[mortF[,"age"], gadgetYear,,,,iter] <- mortF[,ncol(mortF)]
+		print("Landings")
 
-	#print(harvest(fl_stock))
+		# Landings
+		fl_stock@landings[,gadgetYear,,,area,iter] <- catch[catch[["area"]]==area, ncol(catch)]
+		fl_stock@landings.n[catch.n[,"age"],gadgetYear,,,area,iter] <- catch.n[catch.n[["area"]]==area, ncol(catch.n)]
+		fl_stock@landings.wt[catch.wt[,"age"],gadgetYear,,,area,iter] <- catch.wt[catch.wt[["area"]]==area, ncol(catch.wt)]
 
-	## Natural mortality (m)
-        mortPred[is.nan(mortPred[,ncol(mortPred)]), ncol(mortPred)] <- 0
-	if(is.null(stockParams[["m2"]]))
-		fl_stock@m[stock.n[,"age"], gadgetYear,,,,iter] <- stockParams[["m1"]] + mortPred[,ncol(mortPred)]
-	else
-		fl_stock@m[stock.n[,"age"], gadgetYear,,,,iter] <- stockParams[["m1"]] + stockParams[["m2"]]
+		print("Discards")
 
-	#print(m(fl_stock))
+		# Discards (use catch weight as discard weights)
+		fl_stock@discards[,gadgetYear,,,area,iter] <- 0
+		fl_stock@discards.n[,gadgetYear,,,area,iter] <- 0
+		fl_stock@discards.wt[,gadgetYear,,,area,iter] <- catch.wt[catch.wt[["area"]]==area, ncol(catch.wt)]
 
-	## Set spwns as 0
-	fl_stock@m.spwn[stock.n[,"age"], gadgetYear,,,,iter] <- rep(0, length(stock.n[,"age"]))
-	fl_stock@harvest.spwn[stock.n[,"age"], gadgetYear,,,,iter] <- rep(0, length(stock.n[,"age"]))
+		print("Stocks")
 
-	print("Surveys")
+		# Stocks
+		fl_stock@stock[,gadgetYear,,,area,iter] <- stock[stock[["area"]]==area, ncol(stock)]
+		fl_stock@stock.n[stock.n[,"age"], gadgetYear,,,area,iter] <- stock.n[stock.n[["area"]]==area, ncol(stock.n)]
+		fl_stock@stock.wt[stock.n[,"age"], gadgetYear,,,area,iter] <- stock.wt[stock.wt[["area"]]==area, ncol(stock.wt)]
+		
+		# SSB
+		#fl_stock@stock <- FLQuant(stock[,ncol(stock)], dimnames=list(age="all", year=gadgetYear))
 
-	## Survey
-	if(!is.null(fl_index)) {
-		# Ensure we have free slot
-		fl_index <- window(fl_index, end = as.numeric(gadgetYear))
-		fl_index@catch.n[index.n[,"age"],gadgetYear,,,,iter] <- index.n[,ncol(index.n)]
-		fl_index@catch.wt[index.wt[,"age"],gadgetYear,,,,iter] <- index.wt[,ncol(index.wt)]
-		fl_index@index[index.n[,"age"],gadgetYear,,,,iter] <- index.n[,ncol(index.n)]
-		fl_index@effort[,gadgetYear,,,,iter] <- 1
+		# Recruitment
+		#fl_stock@stock <- FLQuant(stock[,ncol(stock)], dimnames=list(age="all", year=gadgetYear))
+
+		# Maturity
+		fl_stock@mat[mature[,"age"], gadgetYear,,,area,iter] <- mature[mature[["area"]]==area, ncol(mature)]
+
+		# Mortality (in harvest with unit f)
+		mortF[is.nan(mortF[,ncol(mortF)]), ncol(mortF)] <- 0
+		fl_stock@harvest[mortF[,"age"], gadgetYear,,,area,iter] <- mortF[mortF[["area"]]==area, ncol(mortF)]
+
+		#print(harvest(fl_stock))
+
+		# Natural mortality (m)
+		mortPred[is.nan(mortPred[,ncol(mortPred)]), ncol(mortPred)] <- 0
+		if(is.null(stockParams[["m2"]]))
+			fl_stock@m[stock.n[,"age"], gadgetYear,,,area,iter] <- stockParams[["m1"]] + mortPred[mortPred[["area"]]==area, ncol(mortPred)]
+		else
+			fl_stock@m[stock.n[,"age"], gadgetYear,,,area,iter] <- stockParams[["m1"]] + stockParams[["m2"]]
+
+		#print(m(fl_stock))
+
+		# Set spwns as 0
+		fl_stock@m.spwn[stock.n[,"age"], gadgetYear,,,area,iter] <- rep(0, length(stock.n[stock.n[["area"]]==area, "age"]))
+		fl_stock@harvest.spwn[stock.n[,"age"], gadgetYear,,,area,iter] <- rep(0, length(stock.n[stock.n[["area"]]==area, "age"]))
+
+		print("Surveys")
+
+		# Survey
+		if(!is.null(fl_index)) {
+			# Ensure we have free slot
+			fl_index <- window(fl_index, end = as.numeric(gadgetYear))
+			fl_index@catch.n[index.n[,"age"],gadgetYear,,,area,iter] <- index.n[index.n[["area"]]==area, ncol(index.n)]
+			fl_index@catch.wt[index.wt[,"age"],gadgetYear,,,area,iter] <- index.wt[index.wt[["area"]]==area, ncol(index.wt)]
+			fl_index@index[index.n[,"age"],gadgetYear,,,area,iter] <- index.n[index.n[["area"]]==area, ncol(index.n)]
+			fl_index@effort[,gadgetYear,,,area,iter] <- 1
+		}
 	}
 
 	# Cleaning ups
@@ -275,6 +293,7 @@ updateFLStock <- function(stockTitle, out, gadgetYear, fl_stock, fl_index) {
 
 
 # Instruct gadget to run until a specific year
+
 runUntil <- function(until) {
 
 	combinedOut <- list()
@@ -286,8 +305,8 @@ runUntil <- function(until) {
 		print(paste(stockParams[["minage"]], stockParams[["maxage"]]))
 
 		# Prepare FLstocks
-		fl_stock <- FLStock(FLQuant(NA, dimnames=list(age=stockParams[["minage"]]:stockParams[["maxage"]], year=firstYear:(projYear-1))))
-		fl_index <- FLIndex(FLQuant(NA, dimnames=list(age=stockParams[["minage"]]:stockParams[["maxage"]], year=firstYear:(projYear-1))))
+		fl_stock <- FLStock(FLQuant(NA, dimnames=list(age=stockParams[["minage"]]:stockParams[["maxage"]], year=firstYear:(projYear-1), area=stockParams[["areas"]])))
+		fl_index <- FLIndex(FLQuant(NA, dimnames=list(age=stockParams[["minage"]]:stockParams[["maxage"]], year=firstYear:(projYear-1), area=stockParams[["areas"]])))
 
 		fl_stock@name <- sname
 		fl_index@name <- sname
@@ -323,15 +342,20 @@ runUntil <- function(until) {
 
 # Try to fill empty weight using the available mean weights
 fillWeights <- function(wt) {
+
+	return(wt)
+
+	browser()
+
 	wt <- as.data.frame(wt)	
 	wt2 <- wt %>%
-		dplyr::group_by(age) %>%
+		dplyr::group_by(area, age) %>%
 		dplyr::summarise(data2 = mean(data, na.rm=T))
 	wt3 <- wt %>%
 		filter(data == "NaN") %>%
-		dplyr::group_by(age) %>%
+		dplyr::group_by(area, age) %>%
 		dplyr::left_join(wt2) %>%
-		dplyr::group_by(year, age) %>%
+		dplyr::group_by(year, area, age) %>%
 		dplyr::summarise(data=data2)
 	first.yr <- min(wt$year)
 	last.yr <- max(wt$year)

@@ -1,0 +1,33 @@
+;
+; immature cod dispersal matrix
+;
+; migration matrix
+;
+; time step 1
+[migrationmatrix]
+name cod.dispersal.migrate1 
+1.0 	0.0
+0.0 	1.0
+;#cod.migrate.pre.area1 	#cod.migrate.post.area1 	
+;#cod.migrate.pre.area2 	#cod.migrate.post.area2
+
+; time step 2
+[migrationmatrix]
+name cod.dispersal.migrate2 
+1.0 	0.5
+0.0 	0.5
+
+; time step 3
+[migrationmatrix]
+name cod.dispersal.migrate3 
+1.0 	1.0
+0.0 	0.0
+
+; time step 4
+[migrationmatrix]
+name cod.dispersal.migrate4 
+1.0 	1.0
+0.0 	0.0
+
+
+

@@ -1,0 +1,514 @@
+;
+; Likelihood file for the Barents Sea model
+;
+; first specify the likelihood bounds
+[component]
+name               bounds		; likelihood component name
+weight             1                	; weight for component
+type               penalty           	; type of component
+datafile           common/bounds       	; data file for this component
+
+;
+; now specify when to check for understocking
+;
+[component]
+name               understocking     	; likelihood component name
+weight             1.00E+02             ; weight for component
+type               understocking     	; type of component
+;The power coefficient is assumed to be 2, giving a sum of squares equation for this likelihood component
+;
+;  cod
+;
+;  survey indices by fleet
+;
+;	acoustic survey
+;
+;[component]
+;name			surveyindices.acoustic	; likelihood component name
+;weight			0                  	; weight for component
+;type			surveyindices		; type of component
+;datafile		cod.data/cod.ldist.surind.acou	
+						; data file for this component
+;sitype 		fleets
+;biomass 		0 			; 1 to base index data on biomass
+;areaaggfile        	agg/one.area.agg       	; area aggregation file
+;lenaggfile		agg/cod/cod.len_5cm.agg
+;fleetnames         	survey.acoustic         ; source of fleet data
+;stocknames         	cod.zero cod.onetwo cod.imm cod.mat      
+						; source of stock data
+;fittype       		fixedslopeloglinearfit 	; type of data fit
+;slope         		1                      	; slope is fixed
+;
+;	trawl survey
+;
+;[component]
+;name			surveyindices.trawl	; likelihood component name
+;weight			1                  	; weight for component
+;type			0urveyindices		; type of component
+;datafile		cod.data/cod.ldist.surind.trawl	 ; data file for this component
+;sitype 		fleets
+;biomass 		0 			; 1 to base index data on biomass
+;areaaggfile        	agg/one.area.agg       	; area aggregation file
+;lenaggfile		agg/cod/cod.len_5cm.agg
+;fleetnames         	survey.trawl         	; source of fleet data
+;stocknames         	cod.zero cod.onetwo cod.imm cod.mat      
+						; source of stock data
+;fittype       		fixedslopeloglinearfit 	; type of data fit
+;slope         		1                      	; slope is fixed
+;
+;  age-length distribution data
+;
+;	acoustic survey
+;
+[component]
+name               	alkeys.sur.acoustic	; likelihood component name
+weight             	1           		; weight for component
+type               	catchdistribution 	; type of component
+datafile           	cod.data/cod.alkeys.sur.acou 	
+						; data file for this component
+function           	multinomial       	; function type
+aggregationlevel	0
+overconsumption		1
+epsilon            	100             	; used when outcome is improbable
+areaaggfile        	agg/one.area.agg		; area aggregation file
+ageaggfile         	agg/cod/cod.age.agg	; age aggregation file
+lenaggfile         	agg/cod/cod.len_5cm.agg	; length aggregation file
+fleetnames         	survey.acoustic      	; source of fleet data
+stocknames         	cod.zero cod.onetwo cod.imm cod.mat      
+						; source of stock data
+;
+;	trawl survey
+;
+[component]
+name               	alkeys.sur.trawl	; likelihood component name
+weight             	1          		; weight for component
+type               	catchdistribution 	; type of component
+datafile           	cod.data/cod.alkeys.sur.trawl 	
+						; data file for this component
+function           	multinomial       	; function type
+aggregationlevel	0
+overconsumption		1
+epsilon            	120              	; used when outcome is improbable
+areaaggfile        	agg/one.area.agg		; area aggregation file
+ageaggfile         	agg/cod/cod.age.agg	; age aggregation file
+lenaggfile         	agg/cod/cod.len_5cm.agg	; length aggregation file
+fleetnames         	survey.trawl      	; source of fleet data
+stocknames         	cod.zero cod.onetwo cod.imm cod.mat      ; source of stock data
+;	
+;	trawl&others catch
+;
+[component]
+name               	alkeys.catch.trawl	; likelihood component name
+weight             	1              		; weight for component
+type               	catchdistribution 	; type of component
+datafile           	cod.data/cod.alkeys.catch.trawl 	; data file for this component
+function           	multinomial       	; function type
+aggregationlevel	0
+overconsumption		1
+epsilon            	20              ; used when outcome is improbable
+areaaggfile        	agg/area.agg		; area aggregation file
+ageaggfile         	agg/cod/cod.age15plus.agg	; age aggregation file
+lenaggfile         	agg/cod/cod.len_1cm.agg	; length aggregation file
+fleetnames         	catch.trawlothers	; source of fleet data
+stocknames         	cod.zero cod.onetwo cod.imm cod.mat	; source of stock data
+;	
+;	gill catch
+;
+[component]
+name              	alkeys.catch.gill	; likelihood component name
+weight             	1 	             	; weight for component
+type               	catchdistribution 	; type of component
+datafile           	cod.data/cod.alkeys.catch.gill 	; data file for this component
+function           	multinomial       	; function type
+aggregationlevel	0
+overconsumption		1
+epsilon            	20              ; used when outcome is improbable
+areaaggfile        	agg/area.agg       	; area aggregation file
+ageaggfile         	agg/cod/cod.age15plus.agg      ; age aggregation file
+lenaggfile         	agg/cod/cod.len_1cm.agg  ; length aggregation file
+fleetnames         	catch.gill           ; source of fleet data
+stocknames         	cod.zero cod.onetwo cod.imm cod.mat      ; source of stock data
+;	
+;	russian catch
+;
+[component]
+name               	alkeys.catch.russia	; likelihood component name
+weight             	1              		; weight for component
+type               	catchdistribution 	; type of component
+datafile           	cod.data/cod.alkeys.catch.russ 	; data file for this component
+function          	multinomial       	; function type
+aggregationlevel	0
+overconsumption		1
+epsilon            	20              	; used when outcome is improbable
+areaaggfile        	agg/area.agg		; area aggregation file
+ageaggfile         	agg/cod/cod.age15plus.agg	
+						; age aggregation file
+lenaggfile         	agg/cod/cod.len_5cm.agg	; length aggregation file
+fleetnames         	catch.russia         	; source of fleet data
+stocknames         	cod.zero cod.onetwo cod.imm cod.mat      ; source of stock data
+
+;
+;  length distribution data
+;
+;	acoustic survey
+;
+[component]
+name               	ldist.sur.acoustic	; likelihood component name
+weight             	1           		; weight for component
+type               	catchdistribution 	; type of component
+datafile           	cod.data/cod.ldist.sur.acou		; data file for this component
+function           	multinomial       	; function type
+aggregationlevel	0
+overconsumption		1
+epsilon            	20              	; used when outcome is improbable
+areaaggfile        	agg/one.area.agg      	; area aggregation file
+ageaggfile         	agg/cod/cod.allage.agg  ; age aggregation file
+lenaggfile         	agg/cod/cod.len_5cm.agg ; length aggregation file
+fleetnames         	survey.acoustic      	; source of fleet data
+stocknames         	cod.zero cod.onetwo cod.imm cod.mat 	; source of stock data
+;
+;	trawl survey
+;
+[component]
+name               	ldist.sur.trawl		; likelihood component name
+weight             	1           		; weight for component
+type               	catchdistribution 	; type of component
+datafile           	cod.data/cod.ldist.sur.trawl		; data file for this component
+function           	multinomial       	; function type
+aggregationlevel	0
+overconsumption		1
+epsilon            	60              ; used when outcome is improbable
+areaaggfile        	agg/one.area.agg      ; area aggregation file
+ageaggfile         	agg/cod/cod.allage.agg   ; age aggregation file
+lenaggfile         	agg/cod/cod.len_5cm.agg  ; length aggregation file
+fleetnames         	survey.trawl      	; source of fleet data
+stocknames         	cod.zero cod.onetwo cod.imm cod.mat	; source of stock data
+
+;		
+;	trawl&others catch
+;
+[component]
+name               	ldist.catch.trawl	; likelihood component name
+weight             	1              		; weight for component
+type               	catchdistribution 	; type of component
+datafile           	cod.data/cod.ldist.catch.trawl 	; data file for this component
+function          	multinomial       	; function type
+aggregationlevel	0
+overconsumption		1
+epsilon            	20              ; used when outcome is improbable
+areaaggfile        	agg/area.agg      	; area aggregation file
+ageaggfile         	agg/cod/cod.allage.agg   ; age aggregation file
+lenaggfile         	agg/cod/cod.len_1cm.agg  ; length aggregation file
+fleetnames         	catch.trawlothers    ; source of fleet data
+stocknames         	cod.zero cod.onetwo cod.imm cod.mat      ; source of stock data
+;	
+;	gill catch
+;
+[component]
+name               	ldist.catch.gill	; likelihood component name
+weight             	1	              	; weight for component
+type               	catchdistribution 	; type of component
+datafile           	cod.data/cod.ldist.catch.gill 	; data file for this component
+function           	multinomial       	; function type
+aggregationlevel 	0
+overconsumption		1
+epsilon            	20              ; used when outcome is improbable
+areaaggfile        	agg/area.agg      	; area aggregation file
+ageaggfile         	agg/cod/cod.allage.agg   ; age aggregation file
+lenaggfile         	agg/cod/cod.len_1cm.agg  ; length aggregation file
+fleetnames         	catch.gill           ; source of fleet data
+stocknames         	cod.zero cod.onetwo cod.imm cod.mat      ; source of stock data
+;	
+;	russian catch
+;
+[component]
+name               	ldist.catch.russia	; likelihood component name
+weight             	1              		; weight for component
+type               	catchdistribution 	; type of component
+datafile           	cod.data/cod.ldist.catch.russ 	; data file for this component
+function           	multinomial       	; function type
+aggregationlevel	0
+overconsumption		1
+epsilon            	20              ; used when outcome is improbable
+areaaggfile        	agg/area.agg		; area aggregation file
+ageaggfile         	agg/cod/cod.allage.agg	; age aggregation file
+lenaggfile         	agg/cod/cod.len_5cm.agg	; length aggregation file
+fleetnames         	catch.russia         ; source of fleet data
+stocknames         	cod.zero cod.onetwo cod.imm cod.mat      ; source of stock data
+
+;
+;  CatchinKilos data
+;
+;	acoustic survey
+;
+[component]
+name			survey.acoustic.kg	; likelihood component name
+weight			1                  	; weight for component
+type			catchinkilos		; type of component
+datafile		cod.data/cod.fleet.data	; data file for this component
+function		sumofsquares       	; function type
+aggregationlevel	0			; 1 to aggregate data over the whole year
+epsilon            	10                	; used when outcome is improbable
+areaaggfile        	agg/one.area.agg       	; area aggregation file
+fleetnames         	survey.acoustic		; source of fleet data
+stocknames         	cod.zero cod.onetwo cod.imm cod.mat      
+						; source of stock data
+;
+;	trawl survey
+;
+[component]
+name			survey.trawl.kg		; likelihood component name
+weight			1                  	; weight for component
+type			catchinkilos		; type of component
+datafile		cod.data/cod.fleet.data	; data file for this component
+function		sumofsquares       	; function type
+aggregationlevel	0			; 1 to aggregate data over the whole year
+epsilon            	10                	; used when outcome is improbable
+areaaggfile        	agg/one.area.agg       	; area aggregation file
+fleetnames         	survey.trawl         	; source of fleet data
+stocknames         	cod.zero cod.onetwo cod.imm cod.mat      
+						; source of stock data
+;
+;	trawl&others catch
+;
+[component]
+name			catch.trawl.kg		; likelihood component name
+weight			1                  	; weight for component
+type			catchinkilos		; type of component
+datafile		cod.data/cod.fleet.data	; data file for this component
+function		sumofsquares       	; function type
+aggregationlevel	0			; 1 to aggregate data over the whole year
+epsilon            	10                	; used when outcome is improbable
+areaaggfile        	agg/area.agg       	; area aggregation file
+fleetnames         	catch.trawlothers       ; source of fleet data
+stocknames         	cod.zero cod.onetwo cod.imm cod.mat      
+						; source of stock data
+;
+;	gill catch
+;
+[component]
+name			catch.gill.kg		; likelihood component name
+weight			1                  	; weight for component
+type			catchinkilos		; type of component
+datafile		cod.data/cod.fleet.data	; data file for this component
+function		sumofsquares       	; function type
+aggregationlevel	0			; 1 to aggregate data over the whole year
+epsilon            	10                	; used when outcome is improbable
+areaaggfile        	agg/area.agg       	; area aggregation file
+fleetnames         	catch.gill         	; source of fleet data
+stocknames         	cod.zero cod.onetwo cod.imm cod.mat      ; source of stock data
+;
+;	russian catch
+;
+[component]
+name			catch.russia.kg		; likelihood component name
+weight			1                  	; weight for component
+type			catchinkilos		; type of component
+datafile		cod.data/cod.fleet.data	; data file for this component
+function		sumofsquares       	; function type
+aggregationlevel	0			; 1 to aggregate data over the whole year
+epsilon            	10                	; used when outcome is improbable
+areaaggfile        	agg/area.agg       	; area aggregation file
+fleetnames         	catch.russia         	; source of fleet data
+stocknames         	cod.zero cod.onetwo cod.imm cod.mat      ; source of stock data
+
+;
+;  capelin
+;
+;  survey indices by fleet
+;
+;	acoustic survey
+;
+;[component]
+;name			capelin.surveyindices.acoustic	
+						; likelihood component name
+;weight			0                  	; weight for component
+;type			surveyindices		; type of component
+;datafile		capelin.data/capelin.ldist.surind.acou	; data file for this component
+;sitype 			fleets
+;biomass 		1 			; 1 to base index data on biomass
+;areaaggfile        	agg/one.area.agg       	; area aggregation file
+;lenaggfile		agg/capelin/capelin.len_0.5cm.agg 
+;fleetnames         	capelin.survey.acoustic ; source of fleet data
+;stocknames         	capelin.imm capelin.mat ; source of stock data
+;fittype       		fixedslopeloglinearfit 	; type of data fit
+;slope         		1                      	; slope is fixed
+
+;
+;  age-length distribution data
+;
+;	acoustic survey
+;
+[component]
+name               	capelin.alkeys.sur.acoustic	; likelihood component name
+weight             	1      				; weight for component
+type               	catchdistribution 		; type of component
+datafile           	capelin.data/capelin.alkeys.sur.acou 
+							; data file for this component
+function           	multinomial       		; function type
+aggregationlevel	0
+overconsumption		1
+epsilon            	100                	; used when outcome is improbable
+areaaggfile        	agg/one.area.agg		; area aggregation file
+ageaggfile         	agg/capelin/capelin.age.agg	; age aggregation file
+lenaggfile         	agg/capelin/capelin.len_0.5cm.agg 
+ 						; length aggregation file
+fleetnames         	capelin.survey.acoustic      ; source of fleet data
+stocknames         	capelin.imm capelin.mat      ; source of stock data
+;
+;  length distribution data
+;
+;	acoustic survey
+;
+[component]
+name               	capelin.ldist.sur.acoustic	; likelihood component name
+weight             	1           			; weight for component
+type               	catchdistribution 		; type of component
+datafile           	capelin.data/capelin.ldist.sur.acou		
+							; data file for this component
+function           	multinomial       		; function type
+aggregationlevel	0
+overconsumption		1
+epsilon            	100                	; used when outcome is improbable
+areaaggfile        	agg/one.area.agg      	; area aggregation file
+ageaggfile         	agg/capelin/capelin.allage.agg   
+						; age aggregation file
+lenaggfile         	agg/capelin/capelin.len_0.5cm.agg  
+						; length aggregation file
+fleetnames         	capelin.survey.acoustic      ; source of fleet data
+stocknames         	capelin.imm capelin.mat 	; source of stock data
+;
+;  CatchinKilos data
+;
+;	acoustic survey
+;
+[component]
+name			capelin.survey.acoustic.kg	
+						; likelihood component name
+weight			1                  	; weight for component
+type			catchinkilos		; type of component
+datafile		capelin.data/capelin.fleet.data	
+						; data file for this component
+function		sumofsquares       	; function type
+aggregationlevel	0			; 1 to aggregate data over the whole year
+epsilon            	100                	; used when outcome is improbable
+areaaggfile        	agg/one.area.agg       	; area aggregation file
+fleetnames         	capelin.survey.acoustic ; source of fleet data
+stocknames         	capelin.imm capelin.mat ; source of stock data
+;
+;	total catch
+;
+[component]
+name			capelin.catch.total.kg	; likelihood component name
+weight			1                  	; weight for component
+type			catchinkilos		; type of component
+datafile		capelin.data/capelin.fleet.data	; data file for this component
+function		sumofsquares       	; function type
+aggregationlevel	0			; 1 to aggregate data over the whole year
+epsilon            	100                	; used when outcome is improbable
+areaaggfile        	agg/one.area.agg       	; area aggregation file
+fleetnames         	capelin.catch.total     ; source of fleet data
+stocknames         	capelin.imm capelin.mat ; source of stock data
+
+
+
+;####################################NOT USED##################################################################
+;
+; the mean length statistics data
+;
+;[component]
+;name               meanl.sur         ; likelihood component name
+;weight             2e-6              ; weight for component
+;type               catchstatistics   ; type of component
+;datafile           cod.meanle.sur    ; data file for this component
+;function           lengthgivenstddev ; function type
+;areaaggfile        allarea.agg       ; area aggregation file
+;ageaggfile         age.agg           ; age aggregation file
+;fleetnames         survey            ; source of fleet data
+;stocknames         cod.zero cod.onetwo cod.imm cod.mat                ; source of stock data
+;
+;[component]
+;name               meanl.catch       ; likelihood component name
+;weight             0.3e-6            ; weight for component
+;type               catchstatistics   ; type of component
+;datafile           cod.meanle.catch  ; data file for this component
+;function           lengthgivenstddev ; function type
+;areaaggfile        allarea.agg       ; area aggregation file
+;ageaggfile         age.agg           ; age aggregation file
+;fleetnames         comm              ; source of fleet data
+;stocknames         cod.zero cod.onetwo cod.imm cod.mat                 ; source of stock data
+
+;
+; the survey index data
+;
+;[component]
+;name          si10                   ; likelihood component name
+;weight        70e-4                  ; weight for component
+;type          surveyindices          ; type of component
+;datafile      had.surveyindex        ; data file for this component
+;sitype        lengths                ; survey index type
+;areaaggfile   allarea.agg            ; area aggregation file
+;lenaggfile    si10len.agg            ; length aggregation file
+;stocknames    hadim hadmat                     ; source of stock data
+;fittype       fixedslopeloglinearfit ; type of data fit
+;slope         1                      ; slope is fixed
+;
+;[component]
+;name          si15                   ; likelihood component name
+;weight        100e-4                 ; weight for component
+;type          surveyindices          ; type of component
+;datafile      had.surveyindex        ; data file for this component
+;sitype        lengths                ; survey index type
+;areaaggfile   allarea.agg            ; area aggregation file
+;lenaggfile    si15len.agg            ; length aggregation file
+;stocknames    hadim hadmat                     ; source of stock data
+;fittype       fixedslopeloglinearfit ; type of data fit
+;slope         1                      ; slope is fixed
+;
+;[component]
+;name          si20                   ; likelihood component name
+;weight        100e-4                 ; weight for component
+;type          surveyindices          ; type of component
+;datafile      had.surveyindex        ; data file for this component
+;sitype        lengths                ; survey index type
+;areaaggfile   allarea.agg            ; area aggregation file
+;lenaggfile    si20len.agg            ; length aggregation file
+;stocknames    hadim hadmat                    ; source of stock data
+;fittype       fixedslopeloglinearfit ; type of data fit
+;slope         1                      ; slope is fixed
+;
+;[component]
+;name          si25to45               ; likelihood component name
+;weight        100e-4                 ; weight for component
+;type          surveyindices          ; type of component
+;datafile      had.surveyindex        ; data file for this component
+;sitype        lengths                ; survey index type
+;areaaggfile   allarea.agg            ; area aggregation file
+;lenaggfile    si2545len.agg          ; length aggregation file
+;stocknames    hadim hadmat                     ; source of stock data
+;fittype       fixedslopeloglinearfit ; type of data fit
+;slope         1                      ; slope is fixed
+;
+;[component]
+;name          si50to60               ; likelihood component name
+;weight        100e-4                 ; weight for component
+;type          surveyindices          ; type of component
+;datafile      had.surveyindex        ; data file for this component
+;sitype        lengths                ; survey index type
+;areaaggfile   allarea.agg            ; area aggregation file
+;lenaggfile    si5060len.agg          ; length aggregation file
+;stocknames    hadim hadmat                     ; source of stock data
+;fittype       fixedslopeloglinearfit ; type of data fit
+;slope         1                      ; slope is fixed
+;
+;[component]
+;name          si65to75               ; likelihood component name
+;weight        70e-4                  ; weight for component
+;type          surveyindices          ; type of component
+;datafile      had.surveyindex        ; data file for this component
+;sitype        lengths                ; survey index type
+;areaaggfile   allarea.agg            ; area aggregation file
+;lenaggfile    si6575len.agg          ; length aggregation file
+;stocknames    hadim hadmat                     ; source of stock data
+;fittype       fixedslopeloglinearfit ; type of data fit
+;slope         1                      ; slope is fixed

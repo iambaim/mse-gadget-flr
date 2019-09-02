@@ -1,0 +1,37 @@
+;
+; spawning cod migration matrix
+;
+; migration matrix
+;
+[migrationmatrix]
+name cod.spawn.migrate1 
+0.1 	0.0
+0.9 	1.0
+;#cod.migrate.pre.area1 	#cod.migrate.post.area1 	
+;#cod.migrate.pre.area2 	#cod.migrate.post.area2
+
+[migrationmatrix]
+name cod.spawn.migrate2 
+1.0 	0.0
+0.0 	1.0
+
+[migrationmatrix]
+name cod.spawn.migrate3 
+1.0 	1.0
+0.0 	0.0
+
+[migrationmatrix]
+name cod.spawn.migrate4 
+1.0 	1.0
+0.0 	0.0
+
+
+; migraiton ratios 
+;
+;[migrationmatrix]
+;name cod.spawn.migrate1 
+;<from> <to> <ratio>
+;1 	2 	0.9 
+;2 	1 	0.0 
+
+

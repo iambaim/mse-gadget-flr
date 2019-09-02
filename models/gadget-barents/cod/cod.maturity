@@ -1,0 +1,4 @@
+;
+nameofmaturestocksandratio	cod.mat 1
+coefficients  	         ( * 1 #cod.maturation.slope) 	( * 10 #cod.maturation.l50) 	0 	0
+maturitystep               4

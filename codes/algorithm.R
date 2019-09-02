@@ -1,348 +1,226 @@
-############################################################################################################################
-## Developing the FLa4a-Gadget MSE framework (IMR-REDUS project: 2018-2020) - with the haddock Gadget model
-## started: mar 11, 2019; updated mar 12, 2019
+###############################################################################
+# FS, EJ, IM
+# Credits: 
+###############################################################################
 
-#############################################################################################################################
-## The a4a-gadget framework is designed to run MSE with a single or multispcies gadget model as an operating model
-## 
+#==============================================================================
+# libraries and auxiliary functions
+#==============================================================================
 
-## Implemented features
-## 1. Multiple recruitment number can be generated from a matrix
-## 2. Error (in what???) for the latest year is genarated using the function (of what???) 
-## 3. MSEs can be run with parallel computing
-## 4. MSEs can be run for 2 options using Switches:
-##                1) Truth plus noise (perfect observation) - noise is applied to stock only.
-##                2) Stock Assessment (w/ observation error) - noise is applied to both catch and index
-## 5. SAM as an assessment model
-
-
-## List of tasks to be done
-## 1.
-## 2.
-## 3. 
-##
-##
-
-
-##==============================================================================
-## libraries and auxiliary functions
-##==============================================================================
-## Install latest gadgetr
-#devtools::install_github("REDUS-IMR/gadget", ref="gadgetr")
-## Install latest MSE from a4a
-
-## load required packages
 library(mse)
 library(dplyr)
+
 library(FLa4a)
 library(FLash)
 library(FLAssess)
 library(ggplotFL)
 library(FLBRP)
 library(FLCore)
-#library(MASS)
+library(MASS)
 library(FLSAM)
+
 library(filelock)
 
+# Install latest gadgetr
+#remotes::install_local("/home/user/repos/REDUS@github/gadget", force=T)
 
-## set the global parameter values for MSE
-frst.year <- 1988
-prj.year <- 2017 #2017
-fnl.year <- 2037 #2070
-#
-#
-#
+# Install latest MSE from a4a
+#remotes::install_github("flr/mse", force=T)
 
+# Performance measurement
+#library(profvis)
 
-## a function to run MSE with 
-## input parameters
-##
-##
 runOneTimeline <- function(iterSim, saveRaw) {
 	
-	## Set the seed for random number generators
-	set.seed(123)
+	# Set seed
+	set.seed(0)
 
-	## Set directories
-	codeDir <- paste0(homeDir,"/codes") # scripts the main MSE and auxiliary functions
-	paramFileDir <- paste0(homeDir,"/paramfiles") # gadget model input parameters - REPLACE THIS FOLDER WHEN USING A DIFFERENT GADGET MODEL
+	# Setting directories
+	codeDir <- paste0(homeDir,"/codes")
+	paramFileDir <- paste0(homeDir,"/paramfiles")
 
-	## load helper functions
+	# load functions as a psuedo package
 	while("funcs:ExtraFunctions" %in% search()) detach("funcs:ExtraFunctions")
 	sys.source(paste0(codeDir,"/funs.R"), attach(NULL, name = "funcs:ExtraFunctions"))
 
-	## Load gadgetr locally
+	# Load gadget locally
 	library(gadgetr)
 
-	## Load helper functions
-	source(paste0(codeDir,"/gadget-fls.R"), local = T)
-	source(paste0(codeDir,"/overrides.R"), local = T)
+	# Load helper functions
+	source(paste0(codeDir,"/gadget-fls.R"), local=T)
+	source(paste0(codeDir,"/overrides.R"), local=T)
 
-	##==============================================================================
-	## Load the stock and gadget model parameter files
-	##==============================================================================
-	## set a directory with gadget model files
+	#==============================================================================
+	# Load the stock and files
+	#==============================================================================
+	# Directory of the model
 	#setwd("../models/LF_304")
 	#setwd("../models/SC05_98_forecast")
-	setwd(paste0(homeDir, "/models/", modelName)) # REPLACE THIS FOLDER WHEN USING A DIFFERENT GADGET MODEL
 
-	## Load gadget model parameters
+	setwd(paste0(homeDir, "/models/", modelName))
+
+	# Load parameters
 	#gadget(c("-s","-main","main.gadcap","-i","paramsin.gadcap"))
-	gadget(c("-s","-main","main.gadcap","-i","paramsin.forecast"))
+	gadget(c("-s","-main","main","-i","params.in"))
 
-	## Initialize simulation
-	initSim() # SOME DESCRIPTION HERE
+	# Initialize simulation
+	initSim()
 
-	## list stocks from the Gadget model
-	stockList <- c("cod", "red", "shrimp") # a lits of stocks in the operating model
+	# Gadget various info
+	stockList <- c("cod", "capelin")
 
-	## specify stock-specific info from the Gadget model
-	## STOCK 1: cod
-	## STOCK 2: redfish
-	## STOCK 3: shrimp
-	
-	## STOCK 1) cod ##############################################################################
-	stk1.fleets <- c("cod.trawl_I", "cod.trawl_II", "cod.gil", "cod.long", "cod.trawl_forecast")
-	stk1.stocks <- c("cod.hatching", "cod.imm", "cod.mat.small", "cod.mat.large")
-	stk1.stocks.mature <- c("cod.mat.small", "cod.mat.large")
-	stk1.surveys <- c("cod.surveyEU", "cod.surveyEU_forecast")
-	stk1.forecasts <- c("cod.trawl_forecast")
-	stk1.forecasts.tac.proportion <- c(0.232, 0.351, 0.298, 0.119) # SOME DESRIPTIUON HERE - where did these number come from???
-	
-	## specify reference points
-	stk1.hcr.params <- list(method=nafo.hcr, args=list(ssb_lag=1, 
-	                                                  fmin=0.0000001, 
-	                                                  blim1=17906000, 
-	                                                  btrigger1=25943000, 
-	                                                  ftarget1=fComb[combIndex,"cod"], 
-	                                                  blim2=45000000, 
-	                                                  btrigger2=55000000, 
-	                                                  ftarget2=0.55))
-	
-	## m2=NULL: we calculate m2 from gadget result
-	## m2=0 means we use only residual mortality (m1)
-	stk1.params <- list(minage=1, 
-	                   maxage=12, 
-	                   minfbar=3, 
-	                   maxfbar=7, 
-	                   startf=0.56, 
-	                   endf=0.65, 
-	                   m1=c(0.35), m2=NULL)
-	
-	## Recruitment parameters, if read csv (data frame) will apply the values accordingly, if a constant value, 
-	## will apply the value as mux, if NULL leaving the recruitment params as it is
-	stk1.recruit.params <- read.csv(paste0(paramFileDir, "/muxfactors_cod.csv"))
-	stk1.recruit.params <- stk1.recruit.params[, c(1, iterSim + 1)]
+	# Cod information
+	cod.fleets <- c("catch.gill", "catch.trawlothers", "catch.russia") #TODO: COD future fleets
+	cod.stocks <- c("cod.zero", "cod.onetwo", "cod.imm", "cod.mat")
+	cod.stocks.mature <- c("cod.onetwo", "cod.mat")
+	cod.surveys <- c("survey.trawl", "survey.acoustic")
+	cod.forecasts <- NULL #TODO: COD future fleets
+	cod.forecasts.tac.proportion <- c(0.232, 0.351, 0.298, 0.119)
+	cod.hcr.params <- list(method=nafo.hcr, args=list(ssb_lag=1, fmin=0.0000001, blim1=17906000, btrigger1=25943000, ftarget1=fComb[combIndex,"cod"], blim2=45000000, btrigger2=55000000, ftarget2=0.55)) #TODO: COD HCR
+	# m2=NULL means we calculate m2 from gadget result, m2=0 means we use only residual mortality (m1)
+	cod.params <- list(minage=1, maxage=20, minfbar=3, maxfbar=7, startf=0.56, endf=0.65, areas=c(1,2), m1=c(0.35), m2=NULL) #TODO: COD params
+	# Recruitment parameters, if read csv (data frame) will apply the values accordingly, if a constant value, will apply the value as mux, if NULL leaving the recruitment params as it is
+	#cod.recruit.params <- read.csv(paste0(paramFileDir, "/muxfactors_cod.csv"))
+	#cod.recruit.params <- cod.recruit.params[, c(1, iterSim + 1)]
 	#cod.recruit.params <- 10.75871423
-	
-	## there are 2 options for MP (1. truePlusNoise and 2. SCAA)
-	## If truePlusNoise is chosen the noise using the residual params will be applied to stock only (perfect observation)
-	## If sca.sa is chosen, the noise will be applied to both catch and index
-	stk1.residual.params.catch <- NULL #read.csv(paste0(paramFileDir, "/cod_resid_pars_catch.csv"))
-	stk1.residual.params.index <- NULL #read.csv(paste0(paramFileDir, "/cod_resid_pars_index.csv"))
-	stk1.residual.params.stock <- NULL #read.csv(paste0(paramFileDir, "/cod_resid_pars_stock.csv"))
-	stk1.assessment <- "truePlusNoise" #truePlusNoise or SCAA
-	## If you don't want to apply error:
-	#stk1.residual.params <- NULL
-	stk1.noteating.forecast <- TRUE
+	cod.recruit.params <- NULL #TODO: COD recruit params
+	# We now have three assessment functions (truePlusNoise, SCAA, and SAM)
+	# If truePlusNoise is chosen the noise using the residual params will be applied to stock only
+	# If sca.sa is chosen, the noise will be applied to both catch and index
+	cod.residual.params.catch <- NULL #read.csv(paste0(paramFileDir, "/cod_resid_pars_catch.csv"))
+	cod.residual.params.index <- NULL #read.csv(paste0(paramFileDir, "/cod_resid_pars_index.csv"))
+	cod.residual.params.stock <- NULL #read.csv(paste0(paramFileDir, "/cod_resid_pars_stock.csv"))
+	cod.assessment <- "SCAA" #truePlusNoise or SCAA or SAM
+	# If you don't want to apply error:
+	#cod.residual.params <- NULL
+	cod.noteating.forecast <- FALSE
 
-	# ## STOCK 2) redfish ###############################################################################
-	# red.fleets <- c("red.trawl_I", "red.trawl_II", "shrimp.red.trawl", "red.trawl_forecast")
-	# red.stocks <- c("red.hatching", "red.fem.imm", "red.fem.matu", "red.male.imm", "red.male.matu")
-	# red.stocks.mature <- c("red.fem.matu")
-	# red.surveys <- c("red.surveyEU", "red.surveyEU_forecast")
-	# red.forecasts <- c("red.trawl_forecast")
-	# red.forecasts.tac.proportion <- c(0.232, 0.351, 0.298, 0.119)
-	# 
-	# ## specify reference points
-	# red.hcr.params <- list(method=nafo.hcr, 
-	#                        args=list(ssb_lag=1, 
-	#                                  fmin=0.0000001, 
-	#                                  blim1=22027000, 
-	#                                  btrigger1=35361000, 
-	#                                  ftarget1=fComb[combIndex,"red"], 
-	#                                  blim2=NULL, 
-	#                                  btrigger2=NULL, 
-	#                                  ftarget2=NULL))
-	# 
-	# ## m2=NULL means we calculate m2 from gadget result
-	# ## m2=0 means we use only residual mortality (m1)
-	# red.params <- list(minage=1, 
-	#                    maxage=25, 
-	#                    minfbar=6, 
-	#                    maxfbar=16, 
-	#                    startf=0.56, 
-	#                    endf=0.65, 
-	#                    m1=c(0.145, 0.101, 0.072, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 
-	#                         0.05, 0.075, 0.075, 0.075, 0.075, 0.075, 0.075, 0.075, 0.12, 
-	#                         0.15, 0.2, 0.25, 0.25, 0.25, 0.25), 
-	#                    m2=NULL)
-	# 
-	# ## Recruitment parameters, if read csv (data frame) will apply the values accordingly, if a constant value, 
-	# ## will apply the value as mux, if NULL leaving the recruitment params as it is	
-	# red.recruit.params <- read.csv(paste0(paramFileDir, "/muxfactors_red.csv"))
-	# red.recruit.params <- red.recruit.params[, c(1, iterSim+1)]
-	# #red.recruit.params <- 33.23606361
-	# 
-	# ## 2 options for an assessment model (1. truePlusNoise and 2. SCAA)
-	# ## If truePlusNoise is chosen the noise using the residual params will be applied to stock only
-	# ## If sca.sa is chosen, the noise will be applied to both catch and index
-	# red.residual.params.catch <- NULL #
-	# red.residual.params.index <- NULL #
-	# red.residual.params.stock <- NULL #
-	# red.assessment <- "truePlusNoise" # truePlusNoise or SCAA
-	# red.noteating.forecast <- TRUE
-	# 
-	# ## STOCK 3) shrimp ######################################################################################## 
-	# shrimp.fleets <- c("shrimp.trawl", "shrimp.trawl_forecast")
-	# shrimp.stocks <- c("shrimp.hatching", "shrimp.fem.multi", "shrimp.fem.primi", "shrimp.male")
-	# shrimp.stocks.mature <- c("shrimp.fem.multi")
-	# shrimp.surveys <- c("shrimp.surveyEU", "shrimp.surveyEU_forecast")
-	# shrimp.forecasts <- c("shrimp.trawl_forecast")
-	# shrimp.forecasts.tac.proportion <- c(0.232, 0.351, 0.298, 0.119)
-	# 
-	# ## refrence points - derived from NAFO HCR
-	# shrimp.hcr.params <- list(method=nafo.hcr, 
-	#                           args=list(ssb_lag=1, 
-	#                                     fmin=0.0000001, 
-	#                                     blim1=11864000, 
-	#                                     btrigger1=31114000, 
-	#                                     ftarget1=fComb[combIndex,"shrimp"], 
-	#                                     blim2=NULL, 
-	#                                     btrigger2=NULL, 
-	#                                     ftarget2=NULL))
-	# 
-	# ## m2=NULL: we calculate m2 from gadget result
-	# ## m2=0: we use only residual mortality (m1)
-	# shrimp.params <- list(minage=1, 
-	#                       maxage=7, 
-	#                       minfbar=2, 
-	#                       maxfbar=5, 
-	#                       startf=0.56, 
-	#                       endf=0.65, 
-	#                       m1=c(0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1), 
-	#                       m2=NULL)
-	# shrimp.recruit.params <- read.csv(paste0(paramFileDir, "/muxfactors_shrimp.csv"))
-	# shrimp.recruit.params <- shrimp.recruit.params[, c(1, iterSim+1)]
-	# #shrimp.recruit.params <- 2765.125525
-	# 
-	# ## 2 options for assessment models (1. truePlusNoise and 2. SCAA)
-	# ## If truePlusNoise is chosen the noise using the residual params will be applied to stock only
-	# ## If sca.sa is chosen, the noise will be applied to both catch and index
-	# shrimp.residual.params.catch <- NULL #read.csv(paste0(paramFileDir, "/shrimp_resid_pars_catch.csv"))
-	# shrimp.residual.params.index <- NULL #read.csv(paste0(paramFileDir, "/shrimp_resid_pars_index.csv"))
-	# shrimp.residual.params.stock <- NULL #read.csv(paste0(paramFileDir, "/shrimp_resid_pars_stock.csv"))
-	# shrimp.assessment <- "truePlusNoise" #truePlusNoise or SCAA
-	# shrimp.noteating.forecast <- TRUE
+	# Capelin information
+	capelin.fleets <- c("capelin.catch.total") #TODO: CAPELIN future fleets
+	capelin.stocks <- c("capelin.imm", "capelin.mat")
+	capelin.stocks.mature <- c("capelin.mat")
+	capelin.surveys <- c("capelin.survey.acoustic") 
+	capelin.forecasts <- NULL #TODO: CAPELIN future fleets
+	capelin.forecasts.tac.proportion <- c(0.232, 0.351, 0.298, 0.119)
+	# Using NAFO HCR
+	capelin.hcr.params <- list(method=nafo.hcr, args=list(ssb_lag=1, fmin=0.0000001, blim1=22027000, btrigger1=35361000, ftarget1=fComb[combIndex,"red"], blim2=NULL, btrigger2=NULL, ftarget2=NULL)) #TODO: CAPELIN HCR
+	#m2=NULL means we calculate m2 from gadget result, m2=0 means we use only residual mortality (m1)
+	capelin.params <- list(minage=1, maxage=5, minfbar=1, maxfbar=3, startf=0.56, endf=0.65, areas=c(1), m1=c(0.35), m2=NULL) #TODO: CAPELIN params
+	# Recruitment parameters, if read csv (data frame) will apply the values accordingly, if a constant value, will apply the value as mux, if NULL leaving the recruitment params as it is	
+	#capelin.recruit.params <- read.csv(paste0(paramFileDir, "/muxfactors_capelin.csv"))
+	#capelin.recruit.params <- capelin.recruit.params[, c(1, iterSim + 1)]
+	#capelin.recruit.params <- 33.23606361
+	capelin.recruit.params <- NULL #TODO: CAPELIN recruit params
+	# We now have three assessment functions (truePlusNoise, SCAA, and SAM)
+	# If truePlusNoise is chosen the noise using the residual params will be applied to stock only
+	# If sca.sa is chosen, the noise will be applied to both catch and index
+	capelin.residual.params.catch <- NULL #read.csv(paste0(paramFileDir, "/red_resid_pars_catch.csv"))
+	capelin.residual.params.index <- NULL #read.csv(paste0(paramFileDir, "/red_resid_pars_index.csv"))
+	capelin.residual.params.stock <- NULL #read.csv(paste0(paramFileDir, "/red_resid_pars_stock.csv"))
+	capelin.assessment <- "SCAA" #truePlusNoise or SCAA
+	capelin.noteating.forecast <- FALSE
 
-	
-	## set global parameters for the Gadget simulations
-	firstYear <- frst.year
-	projYear <- prj.year
-	finalYear <- fnl.year
-	
-	## initialize gadget forecasting output
+	# Global simulation information
+	firstYear <- 1989
+	projYear <- 2018 #2018
+	finalYear <- 2018 #2070
+
+	# For gadget output in forecasts
 	gadgetOut <-list()
 
-	## Run (WHAT?) until the first projection year
+# For performance measurements
+#test <- profvis({
+	# Run until the start of projected year
 	gadcapOut <- runUntil(projYear-1)
+#})
+#
+#print(test)
+#browser()
 
-	## Set the MSE loop parameters for each stock
+	# Preparing the MSE loop parameters for each stocks
 	prepareStock  <- function(stockNameGl) {
 
-		## specify a stock
+		# Take a stock
 		gadcap.ret <- gadcapOut[[stockNameGl]]
+
 		stk <- gadcap.ret$stk
 		idx <- FLIndices(a=gadcap.ret$idx)
 
-		##==============================================================================
-		## set MSE parameters
-		##==============================================================================
-    ## NEED A LOT MORE DESCRIPTION HERE
+		#==============================================================================
+		# Variables
+		#==============================================================================
+
 		it <- 1 # iterations
 		fy <- finalYear #final year
 		y0 <- range(stk)["minyear"] # initial data year
 		dy <- range(stk)["maxyear"] # final data year
-		iy <- projYear # initial year of projection (also 'intermediate' year)
+		iy <- projYear # initial year of projection (also intermediate)
 		ny <- fy - iy + 1 # number of years to project from intial year
 		nsqy <- 3 # number of years to compute status quo metrics
 		vy <- ac(iy:fy) # vector of years to be projected
 
-		## compute biological parameters of the stock - based on means of the last 5 years of observations
+		# Set up future assumptions - means of 5 years
 		stk <- stf(stk, fy-dy, nsqy, nsqy)
 
-		##==============================================================================
-		## Fleet behaviour
-		##==============================================================================
-		## NEED A LOT MORE DESCRIPTION HERE
-		fb <- mseCtrl(method=hyperstability.fb, 
-		              args=list(beta=0.8)) # WHAT IS BETA?
+		#==============================================================================
+		# Fleet behaviour
+		#==============================================================================
 
-		##==============================================================================
-		## OM object
-		##==============================================================================
-		## NEED A LOT MORE DESCRIPTION HERE
-		om <- FLom(stock=stk)#, 
-		        #fleetBehaviour=fb)
+		fb <- mseCtrl(method=hyperstability.fb, args=list(beta=0.8))
+
+		#==============================================================================
+		# OM object
+		#==============================================================================
+		om <- FLom(stock=stk)#, fleetBehaviour=fb)
+
 		#save(om, it, fy, y0, dy, iy, ny, nsqy, vy, fit, file="om.RData")
 
 		###############################################################################
-		## OEM settings
+		# OEM settings
 		###############################################################################
-    ## SOME DESCRIPTION HERE OR DELETE
-		
-		
-		##==============================================================================
-		## prepare mse objects
-		##==============================================================================
-    ## NEED A LOT MORE DSCRIPTION HERE
-		idx <- FLIndices(a=gadcap.ret$idx) # survey indices
-		stk <- stock(om) # stock OM
-		stk0 <- stk # initial stock object?
 
-		##==============================================================================
-		## compute the indices catchability from the a4a fit (without simulation)
-		##==============================================================================
+		#==============================================================================
+		# prepare objects
+		#==============================================================================
 
-		## initialize indices
+		idx <- FLIndices(a=gadcap.ret$idx)
+		stk <- stock(om)
+		stk0 <- stk
+
+		#==============================================================================
+		# Estimate the indices catchability from the a4a fit (without simulation)
+		#==============================================================================
+
+		# Use all indices
 		idcs <- FLIndices()
 		for (i in 1:length(idx)){
-		  
-			## assume surveys are conducted on Jan. 1st
+			# this is a simplification as if index reflects 01 January abundances
 			lst <- mcf(list(idx[[i]]@index, stock.n(stk0)))
-			
-			## log-transform catchability of the index
+			# log catchability of index
 			idx.lq <- log(lst[[1]]/lst[[2]])
-			
-			## initialize stock objects
+			# empty quant
 			idx.qmu <- idx.qsig <- stock.n(iter(stk,1))
-			
-			## catchability 
-			## in this model catchability is constant
+			# Every year has the same mean catchability
 			idx.qmu[] <- yearMeans(idx.lq)
 			idx.qsig[] <- sqrt(yearVars(idx.lq))
 			idx.q <- FLQuant(NA, dimnames=dimnames(stock.n(stk)))
-			
-			## compute index catchability with noise generated from the lognormal distribution 
-			## (mean and sd calculated above)
+			# Build FLQ of index catchability based on lognormal distribution with mean and sd calculated above
 			idx.q <- rlnorm(it, idx.qmu, idx.qsig)
 			#idx.q[,ac(y0:iy)] <- idx.q[,ac(y0:iy)]
 			idx_temp <- idx.q * stock.n(stk)
-			
-			## generate initial index
-			idx_temp <- FLIndex(index=idx_temp, 
-			                    index.q=idx.q)
+			# generate initial index
+			idx_temp <- FLIndex(index=idx_temp, index.q=idx.q)
 			range(idx_temp)[c("startf", "endf")] <- c(0, 0)
 			idcs[[i]] <- idx_temp
 		}
-		
 		names(idcs) <- names(idx)
+
 		#idx <- FLIndices(a=idcs$a)
 
-		##==============================================================================
-		## Deviances for catch.n
-		##==============================================================================
-		## SOME DECRITPION HERE
+		#==============================================================================
+		# Deviances for catch.n
+		#==============================================================================
+
 		#catch.dev <- log(catch.n(stk))
 		#catch.dev <- catch.dev-iterMeans(catch.dev)
 		#Sig <- apply(catch.dev[,ac(y0:dy),1,1,,drop=TRUE], 3, function(x) cov(t(x)))
@@ -351,133 +229,119 @@ runOneTimeline <- function(iterSim, saveRaw) {
 		#catch.dev[,ac(vy)][] <- t(mvrnorm(it * length(vy), rep(0, nrow(Sig)), Sig))
 		#catch.dev <- exp(catch.dev)
 
-		##==============================================================================
-		## OEM object
-		##==============================================================================
-    ## SOME DESCRITPOIN HERE
-		idxDev <- lapply(idcs, index.q) # compute noise using the index catchbilaity computed above
+		#==============================================================================
+		# OEM object
+		#==============================================================================
+
+		idxDev <- lapply(idcs, index.q)
 		names(idxDev) <- "index.q"
 		stkDev <- FLQuant()
 		dev <- list(idx=idxDev, stk=stkDev)
 		obs <- list(idx=idcs[1], stk=stk)
+
 		#oem <- FLoem(method=sampling.oem, args=list(oe="index"), observations=obs, deviances=dev)
 		oem <- FLoem()
 		#save(oem, file="oem.RData")
 
 		###############################################################################
-		## Implementation error
+		# Implementation error
 		###############################################################################
-    ## SOME DESCRITPOIN HERE
+
 		#iem <- FLiem(method=noise.iem, args=list(fun="rlnorm", mean=0, sd=0.1, multiplicative=TRUE))
 		iem <- FLiem()
 
 		###############################################################################
-		## Management procedure
+		# Management procedure
 		###############################################################################
-    ## SOME DESCRIPTION HERE
-		# specify general pars
-		mpPars <- list(seed=1234, 
-		               fy=fy, 
-		               y0=y0, 
-		               iy=iy, 
-		               nsqy=nsqy, 
-		               it=it)
+
+		# general pars
+		mpPars <- list(seed=1234, fy=fy, y0=y0, iy=iy, nsqy=nsqy, it=it)
 
 		#==============================================================================
-		## Scenarios
+		# Scenarios
 		#==============================================================================
-		## Tell stocks to stop eating (if requested) - FOR PREDATION/FOOD CONSUMPTION IN GADGET?????
+
+		# Tell stocks to stop eating (if requested)
 		if(eval(parse(text=paste0(stockNameGl, ".noteating.forecast")))){
-		  stockCat <- eval(parse(text=paste0(stockNameGl, ".stocks")))
+			stockCat <- eval(parse(text=paste0(stockNameGl, ".stocks")))
 			tmp <- lapply(stockCat, stopEating)
 			print("Stocks stop eating now")
 			print(tmp)
-			}
+		}
 
-		## Get HCR parameters  NEED MORE SPECIFIC DESCRIPTION HERE
+		# Get HCR parameters
 		hcrParams <- eval(parse(text=paste0(stockNameGl, ".hcr.params")))
 
-		## Get stock assessment model parameter NEED MORE SPECIFIC DESCRIPTION HERE
+		# Get SA parameter
 		saParam <- eval(parse(text=paste0(stockNameGl, ".assessment")))
 		if(saParam == "truePlusNoise") saMethod <- truePlusNoise.sa
 		else if(saParam == "SCAA") saMethod <- sca.sa
 		else if(saParam == "SAM") saMethod <- sam.sa
 
-		## baseline model with TAC
-		ctrl <- list(ctrl.hcr = mseCtrl(method=hcrParams[["method"]], 
-		                                args=hcrParams[["args"]]),
+		# base with TAC
+		ctrl <- list(ctrl.hcr = mseCtrl(method=hcrParams[["method"]], args=hcrParams[["args"]]),
 			ctrl.is = mseCtrl(method=tac.is.fixed),
 			ctrl.sa = mseCtrl(method=saMethod))
 
-		## specify alternative scenarios
+		# Scenario name
 		scenarioName <- paste0(stockNameGl, ".", "iter", iterSim)
 
-		return(list(opModel=om, 
-		            indices=idx, 
-		            obsModel=oem, 
-		            impModel=NULL, 
-		            ctrl.mp=ctrl, 
-		            mpPars=mpPars, 
-		            scenario=scenarioName, 
-		            tracking=NULL))
+		return(list(opModel=om, indices=idx, obsModel=oem, impModel=NULL, ctrl.mp=ctrl, mpPars=mpPars, scenario=scenarioName, tracking=NULL))
 	}
 
-	## load Gadget helper functions
+	# load helpers
 	source(paste0(codeDir,"/gadget-fwd.R"), local=T)
 	source(paste0(codeDir,"/mp-methods-gadget.R"), local=T)
+
 	inputPre <- lapply(stockList, prepareStock)
 	names(inputPre) <- stockList
+
 	res <- mp.gadget(inputPre)
 
 	#return(list(mseResults=res,gadgetResults=gadgetOut))
 	return(list(mseResults=res))
 }
 
-## specify MSE run parameters 
-## Enable below to run directly from R shell
-combIndex <- 1 # the index value for ???
-iterIndex <- 1 # the number of iterations?
+# Enable below to run directly from R shell
+combIndex <- 1
+iterIndex <- 1
 
-## set global Gadget model variables
-homeDir <- paste0(getwd()) #"/../")
-modelName <- "SC05_98_forecast_new_survey_forecast"
+# Global variables
+homeDir <- paste0(getwd(),"/../")
+modelName <- "gadget-barents"
 saveAllRawData <- FALSE
 
-## Read effort combination
-print(paste("I'm running with combination no.", combIndex, 
-            "iteration", iterIndex))
+# Read effort combination
+print(paste("I'm running with combination no.", combIndex, "iteration", iterIndex))
 fComb <- read.csv(paste0(homeDir, "/paramfiles/effort_combination.csv"))
 
-## Run with combination and iterIndex
+# Run with combination and iterIndex
 resultFinal <- runOneTimeline(iterIndex, saveAllRawData)
 
-## set a directory for and save the output as a .rds file 
-outFileName <- paste0(homeDir,"/results-combination", combIndex,".rds")
+# Name for the results
+outFileName <- paste0(homeDir,"/results-combination",combIndex,".rds")
 
-## Use lock to prevent race condition when combining results
+# Use lock to prevent race condition when combining results
 lck <- lock(paste0(outFileName,".lock"))
 
-## Check if there is any existing out put file in the folder
+# Check old results
 if(file.exists(outFileName)) {
-	
-  ## Load old results
+	# Load old results
 	allResults <- readRDS(outFileName)
-	} else {
-	## initialize the output if there is no existing output file
+} else {
+	# First result
 	allResults <- list()
-	}
+}
 
-## Combine all the outputs 
+# Combine results
 allResults[[iterIndex]] <- resultFinal
 
-## Save the combined output info
-write.table(fComb[combIndex,], 
-            file=(paste0(outFileName,".info.txt")))
+# Save combination info too
+write.table(fComb[combIndex,], file=(paste0(outFileName,".info.txt")))
 
-## Save all the outputs as a .rds file
+# Save it back
 saveRDS(allResults, file=outFileName)
 
-## Unlock the file
+# Unlock the file
 unlock(lck)
-
 
