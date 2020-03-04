@@ -1,2 +1,0 @@
-"comb.N" "cod" "red" "shrimp"
-"1" 1 0.25 0.03 0

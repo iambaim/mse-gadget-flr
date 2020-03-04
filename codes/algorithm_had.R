@@ -86,10 +86,10 @@ runOneTimeline <- function(iterSim, saveRaw) {
 	## We now have three assessment functions (truePlusNoise, SCAA, and SAM)
 	## If truePlusNoise is chosen the noise using the residual params will be applied to stock only
 	## If sca.sa is chosen, the noise will be applied to both catch and index
-	had.residual.params.catch <- NULL #read.csv(paste0(paramFileDir, "/cod_resid_pars_catch.csv"))
-	had.residual.params.index <- NULL #read.csv(paste0(paramFileDir, "/cod_resid_pars_index.csv"))
-	had.residual.params.stock <- NULL #read.csv(paste0(paramFileDir, "/cod_resid_pars_stock.csv"))
-	had.assessment <- "SCAA" #truePlusNoise or SCAA or SAM
+	had.residual.params.catch <- read.csv(paste0(paramFileDir, "/had_resid_pars_catch.csv"))
+	had.residual.params.index <- read.csv(paste0(paramFileDir, "/had_resid_pars_index.csv"))
+	had.residual.params.stock <- read.csv(paste0(paramFileDir, "/had_resid_pars_stock.csv"))
+	had.assessment <- "truePlusNoise" ## "truePlusNoise" or "SCAA" or "SAM"
 	
 	## If you don't want to apply error:
 	#had.residual.params <- NULL
@@ -279,7 +279,7 @@ combIndex <- 1
 iterIndex <- 1
 
 # Global variables
-homeDir <- paste0(getwd(),"/git/flr-gadget/flr-gadget_barents/")
+homeDir <- paste0(getwd(),"/git/flr-gadget/flr-gadget/")
 modelName <- "had"
 saveAllRawData <- FALSE
 
