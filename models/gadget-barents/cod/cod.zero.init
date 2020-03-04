@@ -1,5 +1,0 @@
-;
-; age    area  agemult     areamult  	  meanlength  	    standdev        condition
-;
-   0      1   	0  	     100 	#cod.imm.l_age0    #cod.imm.d_age0       1
-   0      2   	0  	     100 	#cod.imm.l_age0    #cod.imm.d_age0       1

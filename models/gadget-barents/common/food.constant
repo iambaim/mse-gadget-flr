@@ -1,8 +1,0 @@
-; constnat food items
-;
-[component]  
-foodname               otherfood  
-livesonareas           1  
-lengths                0  200  
-energycontent          1
-amount                 common/otherfood

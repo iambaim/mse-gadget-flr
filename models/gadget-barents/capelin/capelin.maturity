@@ -1,4 +1,0 @@
-;
-nameofmaturestocksandratio	capelin.mat 1
-coefficients  	         ( * 1 #capelin.maturation.slope) 	( * 1 #capelin.maturation.l50) 	0 	0
-maturitystep               4

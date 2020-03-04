@@ -1,15 +1,13 @@
 ###############################################################################
-# FS, EJ, IM
-# Credits: 
+## testing the FLR/mse-Gadget MSE framework (IMR-REDUS project) - with the Barenst Sea multispecies model
+## started: sep 28, 2019; updated dec 12, 2020
 ###############################################################################
 
 #==============================================================================
 # libraries and auxiliary functions
 #==============================================================================
-
 library(mse)
 library(dplyr)
-
 library(FLa4a)
 library(FLash)
 library(FLAssess)
@@ -18,63 +16,58 @@ library(FLBRP)
 library(FLCore)
 library(MASS)
 library(FLSAM)
-
 library(filelock)
 
 # Install latest gadgetr
 #remotes::install_local("/home/user/repos/REDUS@github/gadget", force=T)
-
 # Install latest MSE from a4a
 #remotes::install_github("flr/mse", force=T)
-
 # Performance measurement
 #library(profvis)
 
 runOneTimeline <- function(iterSim, saveRaw) {
 	
-	# Set seed
+	## Set seed
 	set.seed(0)
 
-	# Setting directories
-	codeDir <- paste0(homeDir,"/codes")
-	paramFileDir <- paste0(homeDir,"/paramfiles")
+	## Setting directories
+	codeDir <- paste0(homeDir,"codes")
+	paramFileDir <- paste0(homeDir,"paramfiles")
 
-	# load functions as a psuedo package
+	## load functions as a psuedo package
 	while("funcs:ExtraFunctions" %in% search()) detach("funcs:ExtraFunctions")
 	sys.source(paste0(codeDir,"/funs.R"), attach(NULL, name = "funcs:ExtraFunctions"))
 
-	# Load gadget locally
+	## Load gadget locally
 	library(gadgetr)
 
-	# Load helper functions
+	## Load helper functions
 	source(paste0(codeDir,"/gadget-fls.R"), local=T)
 	source(paste0(codeDir,"/overrides.R"), local=T)
 
 	#==============================================================================
 	# Load the stock and files
 	#==============================================================================
-	# Directory of the model
-	#setwd("../models/LF_304")
-	#setwd("../models/SC05_98_forecast")
-
+	## Directory of the model
 	setwd(paste0(homeDir, "/models/", modelName))
 
-	# Load parameters
+	## Load parameters
 	#gadget(c("-s","-main","main.gadcap","-i","paramsin.gadcap"))
-	gadget(c("-s","-main","main","-i","params.in"))
+	paramsfile <- "params.in.link"
+	gadget(c("-s", "-main", "main","-i", paramsfile))
 
-	# Initialize simulation
+	## Initialize simulation
 	initSim()
 
-	# Gadget various info
+	## Gadget various info
 	stockList <- c("cod", "capelin")
 
-	# Cod information
+	## Cod information
 	cod.fleets <- c("catch.gill", "catch.trawlothers", "catch.russia") #TODO: COD future fleets
 	cod.stocks <- c("cod.zero", "cod.onetwo", "cod.imm", "cod.mat")
 	cod.stocks.mature <- c("cod.onetwo", "cod.mat")
 	cod.surveys <- c("survey.trawl", "survey.acoustic")
-	cod.forecasts <- NULL #TODO: COD future fleets
+	cod.forecasts <-  c("cod.catch.gill.future", "cod.catch.trawlothers.future", "cod.catch.russia.future")  #TODO: COD future fleets
 	cod.forecasts.tac.proportion <- c(0.232, 0.351, 0.298, 0.119)
 	cod.hcr.params <- list(method=nafo.hcr, args=list(ssb_lag=1, fmin=0.0000001, blim1=17906000, btrigger1=25943000, ftarget1=fComb[combIndex,"cod"], blim2=45000000, btrigger2=55000000, ftarget2=0.55)) #TODO: COD HCR
 	# m2=NULL means we calculate m2 from gadget result, m2=0 means we use only residual mortality (m1)
@@ -82,8 +75,8 @@ runOneTimeline <- function(iterSim, saveRaw) {
 	# Recruitment parameters, if read csv (data frame) will apply the values accordingly, if a constant value, will apply the value as mux, if NULL leaving the recruitment params as it is
 	#cod.recruit.params <- read.csv(paste0(paramFileDir, "/muxfactors_cod.csv"))
 	#cod.recruit.params <- cod.recruit.params[, c(1, iterSim + 1)]
-	#cod.recruit.params <- 10.75871423
-	cod.recruit.params <- NULL #TODO: COD recruit params
+	cod.recruit.params <- 10.75871423
+	#cod.recruit.params <- NULL #TODO: COD recruit params
 	# We now have three assessment functions (truePlusNoise, SCAA, and SAM)
 	# If truePlusNoise is chosen the noise using the residual params will be applied to stock only
 	# If sca.sa is chosen, the noise will be applied to both catch and index
@@ -100,17 +93,17 @@ runOneTimeline <- function(iterSim, saveRaw) {
 	capelin.stocks <- c("capelin.imm", "capelin.mat")
 	capelin.stocks.mature <- c("capelin.mat")
 	capelin.surveys <- c("capelin.survey.acoustic") 
-	capelin.forecasts <- NULL #TODO: CAPELIN future fleets
+	capelin.forecasts <- c("capelin.catch.future") #TODO: CAPELIN future fleets
 	capelin.forecasts.tac.proportion <- c(0.232, 0.351, 0.298, 0.119)
-	# Using NAFO HCR
+	## HCR
 	capelin.hcr.params <- list(method=nafo.hcr, args=list(ssb_lag=1, fmin=0.0000001, blim1=22027000, btrigger1=35361000, ftarget1=fComb[combIndex,"red"], blim2=NULL, btrigger2=NULL, ftarget2=NULL)) #TODO: CAPELIN HCR
 	#m2=NULL means we calculate m2 from gadget result, m2=0 means we use only residual mortality (m1)
 	capelin.params <- list(minage=1, maxage=5, minfbar=1, maxfbar=3, startf=0.56, endf=0.65, areas=c(1), m1=c(0.35), m2=NULL) #TODO: CAPELIN params
 	# Recruitment parameters, if read csv (data frame) will apply the values accordingly, if a constant value, will apply the value as mux, if NULL leaving the recruitment params as it is	
 	#capelin.recruit.params <- read.csv(paste0(paramFileDir, "/muxfactors_capelin.csv"))
 	#capelin.recruit.params <- capelin.recruit.params[, c(1, iterSim + 1)]
-	#capelin.recruit.params <- 33.23606361
-	capelin.recruit.params <- NULL #TODO: CAPELIN recruit params
+	capelin.recruit.params <- 33.23606361
+	#capelin.recruit.params <- NULL #TODO: CAPELIN recruit params
 	# We now have three assessment functions (truePlusNoise, SCAA, and SAM)
 	# If truePlusNoise is chosen the noise using the residual params will be applied to stock only
 	# If sca.sa is chosen, the noise will be applied to both catch and index
@@ -120,10 +113,10 @@ runOneTimeline <- function(iterSim, saveRaw) {
 	capelin.assessment <- "SCAA" #truePlusNoise or SCAA
 	capelin.noteating.forecast <- FALSE
 
-	# Global simulation information
+	## Global simulation information
 	firstYear <- 1989
 	projYear <- 2018 #2018
-	finalYear <- 2018 #2070
+	finalYear <- 2040 #2070
 
 	# For gadget output in forecasts
 	gadgetOut <-list()
@@ -307,13 +300,13 @@ combIndex <- 1
 iterIndex <- 1
 
 # Global variables
-homeDir <- paste0(getwd(),"/../")
-modelName <- "gadget-barents"
+homeDir <- paste0(getwd(),"/git/flr-gadget/flr-gadget_barents/")
+modelName <- "barents"
 saveAllRawData <- FALSE
 
 # Read effort combination
 print(paste("I'm running with combination no.", combIndex, "iteration", iterIndex))
-fComb <- read.csv(paste0(homeDir, "/paramfiles/effort_combination.csv"))
+fComb <- read.csv(paste0(homeDir, "paramfiles/effort_combination.csv"))
 
 # Run with combination and iterIndex
 resultFinal <- runOneTimeline(iterIndex, saveAllRawData)
