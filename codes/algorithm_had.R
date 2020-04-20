@@ -1,6 +1,6 @@
 ###############################################################################
 ## testing the FLR/mse-Gadget MSE framework (IMR-REDUS project) - with the simple haddock model
-## started: sep 28, 2019; updated dec 12, 2020
+## started: sep 28, 2019; updated feb 12, 2020
 ###############################################################################
 
 #==============================================================================
@@ -69,21 +69,18 @@ runOneTimeline <- function(iterSim, saveRaw) {
 	had.surveys <- c("survey")
 	had.forecasts <- c("future")
 	had.forecasts.tac.proportion <- c(0.232, 0.351, 0.298, 0.119)
-	
-	had.hcr.params <- list(method=nafo.hcr, args=list(ssb_lag=1, fmin=0.0000001, blim1=17906000, btrigger1=25943000, ftarget1=fComb[combIndex,"cod"], 
-	                                                  blim2=45000000, btrigger2=55000000, ftarget2=0.55)) #TODO: NEED TO CHANGE HCR
+	had.hcr.params <- list(method=ices.hcr, args=list(blim=100000, bsafe=200000, fmin=0.05, ftrg=0.15)) ## NEED TO CHANGE HCR
 	
 	## m2=NULL means we calculate m2 from gadget result, m2=0 means we use only residual mortality (m1)
-	had.params <- list(minage=1, maxage=10, minfbar=2, maxfbar=8, startf=0.56, endf=0.65, areas=c(1), m1=c(0.35), m2=NULL) #TODO: gadget params
+	had.params <- list(minage=1, maxage=10, minfbar=2, maxfbar=8, startf=0.56, endf=0.65, areas=c(1), m1=c(0.2), m2=NULL) #TODO: gadget params
 	
 	## Recruitment parameters, if read csv (data frame) will apply the values accordingly, if a constant value, will apply the value as mux, if NULL 
 	## leaving the recruitment params as it is
 	#had.recruit.params <- read.csv(paste0(paramFileDir, "/muxfactors_cod.csv"))
-	#had.recruit.params <- cod.recruit.params[, c(1, iterSim + 1)]
 	had.recruit.params <- 10.75871423
-	#had.recruit.params <- NULL #TODO: recruit params
+	#had.recruit.params <- NULL ## recruit params
 	
-	## We now have three assessment functions (truePlusNoise, SCAA, and SAM)
+	## assessment functions (truePlusNoise, SCAA, and SAM)
 	## If truePlusNoise is chosen the noise using the residual params will be applied to stock only
 	## If sca.sa is chosen, the noise will be applied to both catch and index
 	had.residual.params.catch <- read.csv(paste0(paramFileDir, "/had_resid_pars_catch.csv"))
@@ -94,7 +91,6 @@ runOneTimeline <- function(iterSim, saveRaw) {
 	## If you don't want to apply error:
 	#had.residual.params <- NULL
 	had.noteating.forecast <- FALSE
-
 	
 	## Global simulation information
 	firstYear <- 1978
@@ -104,23 +100,22 @@ runOneTimeline <- function(iterSim, saveRaw) {
 	## For gadget output in forecasts
 	gadgetOut <-list()
 
-## For performance measurements
-#test <- profvis({
-	# Run until the start of projected year
-	gadcapOut <- runUntil(projYear-1)
+  ## For performance measurements
+  #test <- profvis({
+	## Run until the start of projected year
+	gadgetOut <- runUntil(projYear-1)
 #})
 #
 #print(test)
 #browser()
 
-	# Preparing the MSE loop parameters for each stocks
+	## Preparing the MSE loop parameters for each stocks
 	prepareStock  <- function(stockNameGl) {
 
-		# Take a stock
-		gadcap.ret <- gadcapOut[[stockNameGl]]
-
-		stk <- gadcap.ret$stk
-		idx <- FLIndices(a=gadcap.ret$idx)
+		## Take a stock
+		gadget.ret <- gadgetOut[[stockNameGl]]
+		stk <- gadget.ret$stk
+		idx <- FLIndices(a=gadget.ret$idx)
 
 		#==============================================================================
 		# Variables
@@ -155,14 +150,13 @@ runOneTimeline <- function(iterSim, saveRaw) {
 		#==============================================================================
 		# prepare objects
 		#==============================================================================
-		idx <- FLIndices(a=gadcap.ret$idx)
+		idx <- FLIndices(a=gadget.ret$idx)
 		stk <- stock(om)
 		stk0 <- stk
 
 		#==============================================================================
 		# Estimate the indices catchability from the a4a fit (without simulation)
 		#==============================================================================
-
 		## Use all indices
 		idcs <- FLIndices()
 		for (i in 1:length(idx)){
@@ -212,27 +206,25 @@ runOneTimeline <- function(iterSim, saveRaw) {
 		stkDev <- FLQuant()
 		dev <- list(idx=idxDev, stk=stkDev)
 		obs <- list(idx=idcs[1], stk=stk)
-
 		#oem <- FLoem(method=sampling.oem, args=list(oe="index"), observations=obs, deviances=dev)
 		oem <- FLoem()
 		#save(oem, file="oem.RData")
 
 		###############################################################################
-		# Implementation error
+		## Implementation error
 		###############################################################################
 		#iem <- FLiem(method=noise.iem, args=list(fun="rlnorm", mean=0, sd=0.1, multiplicative=TRUE))
 		iem <- FLiem()
 
 		###############################################################################
-		# Management procedure
+		## Management procedure
 		###############################################################################
 		## general pars
 		mpPars <- list(seed=1234, fy=fy, y0=y0, iy=iy, nsqy=nsqy, it=it)
 
 		#==============================================================================
-		# Scenarios
+		## Scenarios
 		#==============================================================================
-
 		## Tell stocks to stop eating (if requested)
 		if(eval(parse(text=paste0(stockNameGl, ".noteating.forecast")))){
 			stockCat <- eval(parse(text=paste0(stockNameGl, ".stocks")))
@@ -267,7 +259,6 @@ runOneTimeline <- function(iterSim, saveRaw) {
 
 	inputPre <- lapply(stockList, prepareStock)
 	names(inputPre) <- stockList
-
 	res <- mp.gadget(inputPre)
 
 	#return(list(mseResults=res,gadgetResults=gadgetOut))
@@ -284,7 +275,7 @@ modelName <- "had"
 saveAllRawData <- FALSE
 
 # Read effort combination
-print(paste("I'm running with combination no.", combIndex, "iteration", iterIndex))
+print(paste("combination no.", combIndex, "iteration", iterIndex))
 fComb <- read.csv(paste0(homeDir, "paramfiles/effort_combination.csv"))
 
 ## Run with combination and iterIndex

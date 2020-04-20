@@ -1,4 +1,4 @@
-; gadget printfile, created in 2020-03-03
+; gadget printfile, created in 2020-04-20
 [component]
 type	likelihoodsummaryprinter
 printfile	FIT/out.fit/likelihoodsummary
@@ -68,7 +68,7 @@ type	stockstdprinter
 stockname	had
 printfile	FIT/out.fit/had.std
 printatstart 1
-yearsandsteps	all	all
+yearsandsteps	all	1
 ;
 [component]
 type	stockprinter
@@ -78,7 +78,7 @@ ageaggfile	FIT/print.aggfiles/had.allages.agg
 lenaggfile	FIT/print.aggfiles/had.len.agg
 printfile	FIT/out.fit/had.full
 printatstart	1
-yearsandsteps	all	all
+yearsandsteps	all	1
 ;
 [component]
 type	predatorpreyprinter

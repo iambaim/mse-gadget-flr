@@ -24,6 +24,7 @@ nafo.hcr <- function (stk, fmin, ftarget1, blim1, btrigger1, ftarget2, blim2, bt
    list(ctrl = ctrl, tracking = tracking)
 }
 
+
 # New Stock recruitment function (true plus noise)
 applyNoise.oem <- function (stk, idx, genArgs, stockName, ...)
 {
