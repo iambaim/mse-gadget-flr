@@ -1,5 +1,5 @@
 ###############################################################################
-## testing the FLR/mse-Gadget MSE framework (IMR-REDUS project) - with the simple haddock model
+## testing the FLR/mse-Gadget MSE framework (IMR-REDUS project) - with the simple haddock example model
 ## started: sep 28, 2019; updated feb 12, 2020
 ###############################################################################
 
@@ -24,7 +24,6 @@ library(filelock)
 #remotes::install_github("flr/mse", force=T)
 ## Performance measurement
 #library(profvis)
-
 
 runOneTimeline <- function(iterSim, saveRaw) {
 	
@@ -307,4 +306,3 @@ saveRDS(allResults, file=outFileName)
 
 # Unlock the file
 unlock(lck)
-
