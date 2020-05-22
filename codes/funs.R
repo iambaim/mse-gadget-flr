@@ -1,4 +1,5 @@
 
+
 #--------------------------------------------------------------------
 setGeneric("rz", function(object, ...) standardGeneric("rz"))
 setMethod("rz", "FLIndex", function(object){

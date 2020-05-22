@@ -1,3 +1,5 @@
+
+
 # Gadget forward function
 pre.gadget <- function(...)
 {

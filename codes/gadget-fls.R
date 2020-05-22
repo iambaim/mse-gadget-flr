@@ -1,3 +1,5 @@
+
+
 # Helper function
 updateFLStock <- function(stockTitle, out, gadgetYear, fl_stock, fl_index) {
 	getStocks <- function(stockTitle, out, suffix=".stocks") {
