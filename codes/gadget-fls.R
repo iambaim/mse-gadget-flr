@@ -62,6 +62,9 @@ updateFLStock <- function(stockTitle, out, gadgetYear, fl_stock, fl_index) {
 	## Get params
 	stockParams <- eval(parse(text=paste0(stockTitle, ".params")))
 
+	# Step of which stock number will be collected
+	stockStep <- stockParams$stockStep
+
 	# Get iteration (or ID)
 	#iter <-	match(stockTitle, stockList)
 	iter <- 1	
@@ -110,8 +113,8 @@ updateFLStock <- function(stockTitle, out, gadgetYear, fl_stock, fl_index) {
 	# Delete Age zero
 	stock.data$stk <- stock.data$stk[!stock.data$stk[,"age"]==0,]
 
-	# Only take the first timestep
-	stock.data$stk <- stock.data$stk[stock.data$stk[,"step"]==1,]
+	# Only take the specified timestep
+	stock.data$stk <- stock.data$stk[stock.data$stk[,"step"]==stockStep,]
 
 	# Process stock information
 	stock <- aggregate(number * meanWeights ~ year + area, data=stock.data$stk, FUN=sum)
@@ -134,8 +137,8 @@ updateFLStock <- function(stockTitle, out, gadgetYear, fl_stock, fl_index) {
 	stock.mature.data <- getStocks(stockTitle, out, suffix = ".stocks.mature")
 	## Delete Age zero
 	stock.mature.data$stk <- stock.mature.data$stk[!stock.mature.data$stk[,"age"]==0,]
-	## Only take the first timestep
-	stock.mature.data$stk <- stock.mature.data$stk[stock.mature.data$stk[,"step"]==1,]
+	## Only take the specified timestep
+	stock.mature.data$stk <- stock.mature.data$stk[stock.mature.data$stk[,"step"]==stockStep,]
 	## Calculate mature stocks number
 	stock.mature.n <- aggregate(number ~ year + area + age, data=stock.mature.data$stk, FUN=sum)
 	mature <- stock.n
@@ -163,7 +166,7 @@ updateFLStock <- function(stockTitle, out, gadgetYear, fl_stock, fl_index) {
 
 	print("Putting into FLStock")
 
-	areas <- dimnames(fl_stock)$area
+	areas <- seq_len(length(dimnames(fl_stock)$area))
 
 	for( area in areas ) {
 
@@ -216,6 +219,12 @@ updateFLStock <- function(stockTitle, out, gadgetYear, fl_stock, fl_index) {
 
 		# Natural mortality (m)
 		mortPred[is.nan(mortPred[,ncol(mortPred)]), ncol(mortPred)] <- 0
+
+		# Always store m in the auxiliary m2 slot
+		m2tmp <- fl_stock@m2
+		m2tmp[stock.n[,"age"], gadgetYear,,,area,iter] <- mortPred[mortPred[["area"]]==area, ncol(mortPred)]
+		attr(fl_stock, "m2") <- m2tmp
+
 		if(is.null(stockParams[["m2"]]))
 			fl_stock@m[stock.n[,"age"], gadgetYear,,,area,iter] <- stockParams[["m1"]] + mortPred[mortPred[["area"]]==area, ncol(mortPred)]
 		else
@@ -307,14 +316,23 @@ runUntil <- function(until) {
 		print(paste(stockParams[["minage"]], stockParams[["maxage"]]))
 
 		# Prepare FLstocks
-		fl_stock <- FLStock(FLQuant(NA, dimnames=list(age=stockParams[["minage"]]:stockParams[["maxage"]], year=firstYear:(projYear-1), area=stockParams[["areas"]])))
-		fl_index <- FLIndex(FLQuant(NA, dimnames=list(age=stockParams[["minage"]]:stockParams[["maxage"]], year=firstYear:(projYear-1), area=stockParams[["areas"]])))
+		if(length(stockParams[["areas"]]) > 1) {
+			area <- stockParams[["areas"]]
+		} else {
+			area <- "unique"
+		}
+
+		fl_stock <- FLStock(FLQuant(NA, dimnames=list(age=stockParams[["minage"]]:stockParams[["maxage"]], year=firstYear:(projYear-1), area=area)))
+		fl_index <- FLIndex(FLQuant(NA, dimnames=list(age=stockParams[["minage"]]:stockParams[["maxage"]], year=firstYear:(projYear-1), area=area)))
 
 		fl_stock@name <- sname
 		fl_index@name <- sname
 
 		# Set the type of FLIndex (FLSAM need this)
 		fl_index@type <- "number"
+
+		# Add auxilary (m2, predation mortality) information
+		attr(fl_stock, "m2") <- expand(fl_stock@m, year=firstYear:finalYear)
 
 		combinedOut[[sname]] <- list(stk = fl_stock, idx = fl_index)
 	}

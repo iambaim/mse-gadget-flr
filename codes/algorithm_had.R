@@ -19,9 +19,9 @@ library(FLSAM)
 library(filelock)
 
 ## Install latest gadgetr
-#remotes::install_local("/home/user/repos/REDUS@github/gadget", force=T)
+#remotes::install_github("REDUS-IMR/gadget", ref="gadgetr")
 ## Install latest MSE from a4a
-#remotes::install_github("flr/mse", force=T)
+#remotes::install_github("flr/mse")
 ## Performance measurement
 #library(profvis)
 
@@ -33,10 +33,6 @@ runOneTimeline <- function(iterSim, saveRaw) {
 	## Setting directories
 	codeDir <- paste0(homeDir,"codes")
 	paramFileDir <- paste0(homeDir,"paramfiles")
-
-	## load functions as a psuedo package
-	while("funcs:ExtraFunctions" %in% search()) detach("funcs:ExtraFunctions")
-	sys.source(paste0(codeDir,"/funs.R"), attach(NULL, name = "funcs:ExtraFunctions"))
 
 	## Load gadget locally
 	library(gadgetr)
@@ -71,7 +67,8 @@ runOneTimeline <- function(iterSim, saveRaw) {
 	had.hcr.params <- list(method=ices.hcr, args=list(blim=100000, bsafe=200000, fmin=0.05, ftrg=0.15)) ## NEED TO CHANGE HCR
 	
 	## m2=NULL means we calculate m2 from gadget result, m2=0 means we use only residual mortality (m1)
-	had.params <- list(minage=1, maxage=10, minfbar=2, maxfbar=8, startf=0.56, endf=0.65, areas=c(1), m1=c(0.2), m2=NULL) #TODO: gadget params
+	## StockStep: in which step we should observe the stock number
+	had.params <- list(stockStep=2, minage=1, maxage=10, minfbar=2, maxfbar=8, startf=0.56, endf=0.65, areas=c(1), m1=c(0.2), m2=NULL) #TODO: gadget params
 	
 	## Recruitment parameters, if read csv (data frame) will apply the values accordingly, if a constant value, will apply the value as mux, if NULL 
 	## leaving the recruitment params as it is
@@ -81,10 +78,12 @@ runOneTimeline <- function(iterSim, saveRaw) {
 	
 	## assessment functions (truePlusNoise, SCAA, and SAM)
 	## If truePlusNoise is chosen the noise using the residual params will be applied to stock only
-	## If sca.sa is chosen, the noise will be applied to both catch and index
+	## If SCAA is chosen, the noise will be applied to both catch and index
 	had.residual.params.catch <- read.csv(paste0(paramFileDir, "/had_resid_pars_catch.csv"))
 	had.residual.params.index <- read.csv(paste0(paramFileDir, "/had_resid_pars_index.csv"))
 	had.residual.params.stock <- read.csv(paste0(paramFileDir, "/had_resid_pars_stock.csv"))
+	had.residual.params.mean.stock <- NULL
+	had.residual.params.vcratios.stock <- NULL
 	had.assessment <- "truePlusNoise" ## "truePlusNoise" or "SCAA" or "SAM"
 	
 	## If you don't want to apply error:
@@ -127,6 +126,7 @@ runOneTimeline <- function(iterSim, saveRaw) {
 		ny <- fy - iy + 1 # number of years to project from intial year
 		nsqy <- 3 # number of years to compute status quo metrics
 		vy <- ac(iy:fy) # vector of years to be projected
+		management_lag <- 1 # For ICES HCR
 
 		## Set up future assumptions - means of 5 years
 		stk <- stf(stk, fy-dy, nsqy, nsqy)
@@ -219,7 +219,7 @@ runOneTimeline <- function(iterSim, saveRaw) {
 		## Management procedure
 		###############################################################################
 		## general pars
-		mpPars <- list(seed=1234, fy=fy, y0=y0, iy=iy, nsqy=nsqy, it=it)
+		mpPars <- list(seed=1234, fy=fy, y0=y0, dy = dy, iy=iy, management_lag = management_lag, nsqy=nsqy, it=it)
 
 		#==============================================================================
 		## Scenarios
@@ -242,9 +242,9 @@ runOneTimeline <- function(iterSim, saveRaw) {
 		else if(saParam == "SAM") saMethod <- sam.sa
 
 		## base with TAC
-		ctrl <- list(ctrl.hcr = mseCtrl(method=hcrParams[["method"]], args=hcrParams[["args"]]),
-			ctrl.is = mseCtrl(method=tac.is.fixed),
-			ctrl.sa = mseCtrl(method=saMethod))
+		ctrl <- list(hcr = mseCtrl(method=hcrParams[["method"]], args=hcrParams[["args"]]),
+					isys = mseCtrl(method=tac.is),
+					est = mseCtrl(method=saMethod))
 
 		## Scenario name
 		scenarioName <- paste0(stockNameGl, ".", "iter", iterSim)
@@ -269,22 +269,22 @@ combIndex <- 1
 iterIndex <- 1
 
 # Global variables
-homeDir <- paste0(getwd(),"/git/flr-gadget/flr-gadget/")
+homeDir <- paste0(getwd(),"/../")
 modelName <- "had"
 saveAllRawData <- FALSE
 
 # Read effort combination
-print(paste("combination no.", combIndex, "iteration", iterIndex))
-fComb <- read.csv(paste0(homeDir, "paramfiles/effort_combination.csv"))
+#print(paste("combination no.", combIndex, "iteration", iterIndex))
+#fComb <- read.csv(paste0(homeDir, "paramfiles/effort_combination.csv"))
 
 ## Run with combination and iterIndex
 resultFinal <- runOneTimeline(iterIndex, saveAllRawData)
 
 ## Name for the results
-outFileName <- paste0(homeDir,"/results-combination",combIndex,".rds")
+outFileName <- paste0(homeDir,"/results-combination", combIndex, ".rds")
 
 ## Use lock to prevent race condition when combining results
-lck <- lock(paste0(outFileName,".lock"))
+lck <- lock(paste0(outFileName, ".lock"))
 
 ## Check old results
 if(file.exists(outFileName)) {
@@ -298,8 +298,12 @@ if(file.exists(outFileName)) {
 # Combine results
 allResults[[iterIndex]] <- resultFinal
 
+# See plot for HAD
+stk.plot <- plot(FLStocks(stk.om = allResults[[iterIndex]]$mseResults$had$mse@stock, stk.mp = allResults[[iterIndex]]$mseResults$had$sa.result$stk0)) +
+	theme(legend.position="top") + geom_vline(aes(xintercept=2000))
+
 # Save combination info too
-write.table(fComb[combIndex,], file=(paste0(outFileName,".info.txt")))
+write.table(1, file=(paste0(outFileName,".info.txt")))
 
 # Save it back
 saveRDS(allResults, file=outFileName)

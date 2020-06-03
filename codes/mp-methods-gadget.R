@@ -1,5 +1,3 @@
-
-
 flsval <- list(object="stk", test="!is(object, \"FLS\")", msg="\"stk must be of class FLStock\"")
 
 flival <- list(object="idx", test= "!is(object, \"FLIndices\")", msg="\"idx must be of class FLIndices\"")
@@ -49,7 +47,7 @@ mp.gadget <- function(input_multi){
 		for(stkName in stockList){
 			
 			impModel <- input_multi[[stkName]]$impModel
-			ctrl.mp <- input_multi[[stkName]]$ctrl.mp
+			ctrl0 <- input_multi[[stkName]]$ctrl
 			mpPars <- input_multi[[stkName]]$mpPars
 	
 			#
@@ -96,7 +94,7 @@ mp.gadget <- function(input_multi){
 			ctrl.oem$deviances <- deviances(obsModel[[stkName]])
 			ctrl.oem$observations <- observations(obsModel[[stkName]])
 			ctrl.oem$stk <- stk.om[[stkName]]
-			ctrl.oem$genArgs <- mpPars
+			ctrl.oem$args <- mpPars
 			ctrl.oem$tracking <- tracking[[stkName]]
 			ctrl.oem$ioval <- list(iv=list(t1=flsval), ov=list(t1=flsval, t2=flival))
 
@@ -112,7 +110,7 @@ mp.gadget <- function(input_multi){
 			idx0 <- idx.om[[stkName]]
 
 			# Apply noise
-			noisy.out <- applyNoise.oem(stk0, idx0, genArgs=mpPars, stockName=stkName)
+			noisy.out <- applyNoise.oem(stk0, idx0, args=mpPars, stockName=stkName)
 			idx0 <- noisy.out$idx
 			stk0 <- noisy.out$stk
 			
@@ -121,12 +119,12 @@ mp.gadget <- function(input_multi){
 			#----------------------------------------------------------
 			# Estimator of stock statistics
 			# function f()
-			if (!is.null(ctrl.mp$ctrl.sa)){
-				ctrl.sa <- args(ctrl.mp$ctrl.sa)
-				ctrl.sa$method <- method(ctrl.mp$ctrl.sa)
+			if (!is.null(ctrl0$est)){
+				ctrl.sa <- args(ctrl0$est)
+				ctrl.sa$method <- method(ctrl0$est)
 				ctrl.sa$stk <- stk0
 				ctrl.sa$idx <- idx0
-				ctrl.sa$genArgs <- mpPars
+				ctrl.sa$args <- mpPars
 				ctrl.sa$tracking <- tracking[[stkName]]
 				ctrl.sa$ioval <- list(iv=list(t1=flsval, t2=flival), ov=list(t1=flsval))
 				out.assess <- do.call("mpDispatch", ctrl.sa)
@@ -148,11 +146,11 @@ mp.gadget <- function(input_multi){
 			#----------------------------------------------------------
 			# HCR parametrization
 			# function x()
-			if (!is.null(ctrl.mp$ctrl.phcr)){
-				ctrl.phcr <- args(ctrl.mp$ctrl.phcr)
-				ctrl.phcr$method <- method(ctrl.mp$ctrl.phcr) 
+			if (!is.null(ctrl0$phcr)){
+				ctrl.phcr <- args(ctrl0$phcr)
+				ctrl.phcr$method <- method(ctrl0$phcr)
 				ctrl.phcr$stk <- stk0
-				ctrl.phcr$genArgs <- mpPars
+				ctrl.phcr$args <- mpPars
 				ctrl.phcr$tracking <- tracking[[stkName]]
 				if(exists("hcrpars")) ctrl.phcr$hcrpars <- hcrpars
 				ctrl.phcr$ioval <- list(iv=list(t1=flsval), ov=list(t1=flpval))
@@ -164,11 +162,11 @@ mp.gadget <- function(input_multi){
 			#----------------------------------------------------------
 			# HCR
 			# function h()
-			if (!is.null(ctrl.mp$ctrl.hcr)){
-				ctrl.hcr <- args(ctrl.mp$ctrl.hcr)
-				ctrl.hcr$method <- method(ctrl.mp$ctrl.hcr)
+			if (!is.null(ctrl0$hcr)){
+				ctrl.hcr <- args(ctrl0$hcr)
+				ctrl.hcr$method <- method(ctrl0$hcr)
 				ctrl.hcr$stk <- stk0
-				ctrl.hcr$genArgs <- mpPars
+				ctrl.hcr$args <- mpPars
 				ctrl.hcr$tracking <- tracking[[stkName]]
 				if(exists("hcrpars")) ctrl.hcr$hcrpars <- hcrpars
 				ctrl.hcr$ioval <- list(iv=list(t1=flsval), ov=list(t1=flfval))
@@ -179,16 +177,16 @@ mp.gadget <- function(input_multi){
 				ctrl <- getCtrl(yearMeans(fbar(stk0)[,sqy]), "f", ay+1, it)
 			}
 			tracking[[stkName]]["metric.hcr", ac(ay)] <- ctrl@trgtArray[ac(ay+1),"val",]
-		
+
 			#----------------------------------------------------------
 			# Implementation system
 			# function k()
-			if (!is.null(ctrl.mp$ctrl.is)){
-				ctrl.is <- args(ctrl.mp$ctrl.is)
-				ctrl.is$method <- method(ctrl.mp$ctrl.is)
+			if (!is.null(ctrl0$isys)){
+				ctrl.is <- args(ctrl0$isys)
+				ctrl.is$method <- method(ctrl0$isys)
 				ctrl.is$ctrl <- ctrl
 				ctrl.is$stk <- stk0
-				ctrl.is$genArgs <- mpPars
+				ctrl.is$args <- mpPars
 				ctrl.is$tracking <- tracking[[stkName]]
 				ctrl.is$ioval <- list(iv=list(t1=flsval, t2=flfval), ov=list(t1=flfval))
 				out <- do.call("mpDispatch", ctrl.is)
@@ -202,11 +200,11 @@ mp.gadget <- function(input_multi){
 			#----------------------------------------------------------
 			# Technical measures
 			# function w()
-			if (!is.null(ctrl.mp$ctrl.tm)){
-				ctrl.tm <- args(ctrl.mp$ctrl.tm)
-				ctrl.tm$method <- method(ctrl.mp$ctrl.tm)
+			if (!is.null(ctrl0$tm)){
+				ctrl.tm <- args(ctrl0$tm)
+				ctrl.tm$method <- method(ctrl0$tm)
 				ctrl.tm$stk <- stk0
-				ctrl.tm$genArgs <- mpPars
+				ctrl.tm$args <- mpPars
 				ctrl.tm$tracking <- tracking[[stkName]]
 				ctrl.tm$ioval <- list(iv=list(t1=flsval), ov=list(t1=flqval))
 				out <- do.call("mpDispatch", ctrl.tm)
@@ -221,7 +219,7 @@ mp.gadget <- function(input_multi){
 				ctrl.iem <- args(impModel)
 				ctrl.iem$method <- method(impModel)
 				ctrl.iem$ctrl <- ctrl
-				ctrl.iem$genArgs <- mpPars
+				ctrl.iem$args <- mpPars
 				ctrl.iem$tracking <- tracking[[stkName]]
 				ctrl.iem$ioval <- list(iv=list(t1=flfval), ov=list(t1=flfval))
 				out <- do.call("mpDispatch", ctrl.iem)
@@ -240,7 +238,7 @@ mp.gadget <- function(input_multi){
 				ctrl.fb$method <- method(fleetBehaviour(input_multi[[stkName]]$opModel))
 				ctrl.fb$tracking <- tracking[[stkName]]
 				ctrl.fb$ctrl <- ctrl
-				ctrl.fb$genArgs <- mpPars
+				ctrl.fb$args <- mpPars
 				ctrl.fb$ioval <- list(iv=list(t1=flfval), ov=list(t1=flfval))
 				out <- do.call("mpDispatch", ctrl.fb)
 				ctrl <- out$ctrl
@@ -279,10 +277,11 @@ mp.gadget <- function(input_multi){
 		out[[stkName]] <- list()
 		out[[stkName]][["index"]] <- idx.om[[stkName]]
 		out[[stkName]][["sa.result"]] <- list(stk0=stk0.sa[[stkName]], idx0=idx0.sa[[stkName]])
+		units(out[[stkName]][["sa.result"]]$stk0)$harvest <- "f"
 		out[[stkName]][["mse"]] <- as(input_multi[[stkName]]$opModel, "FLmse")
 		stock(out[[stkName]][["mse"]]) <- stk.om[[stkName]]
 		tracking(out[[stkName]][["mse"]]) <- tracking[[stkName]]
-		genArgs(out[[stkName]][["mse"]]) <- input_multi[[1]]$mpPars
+		args(out[[stkName]][["mse"]]) <- input_multi[[1]]$mpPars
 	}
 	return(out)
 }
