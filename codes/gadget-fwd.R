@@ -44,7 +44,7 @@ pre.gadget <- function(...)
 		recYearParam <- recruitParams
 
 	if(!is.null(recYearParam)){
-		lapply(matureStocks, updateRecruitment, recYearParam, -1)
+		lapply(matureStocks, updateSpawningRec, recYearParam, -1)
 	}
 }
 
