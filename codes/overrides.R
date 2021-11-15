@@ -104,3 +104,22 @@ sam.sa <- function(stk, idx, ...)
     list(stk = stk, tracking = tracking)
 }
 
+sca.sa <- function (stk, idx, args, update = TRUE, dfm = c(0.75, 0.75), ...) 
+{
+    args0 <- list(...)
+    if (update) 
+        args0$fmodel <- defaultFmod(stk, dfm = dfm)
+    stk <- replaceZeros(stk)
+    idx <- replaceZeros(idx)
+    args0$stock <- stk
+    args0$indices <- idx
+    if (is.null(args0$fit)) 
+        args0$fit <- "MP"
+    tracking <- args0$tracking
+    args0$tracking <- NULL
+    fit <- do.call("sca", args0)
+    stk <- stk + fit
+    tracking["conv.est", ac(range(stk)["maxyear"] + 1)] <- fit@fitSumm["maxgrad", ]
+    list(stk = stk, tracking = tracking)
+}
+
