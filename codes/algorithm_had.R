@@ -6,24 +6,34 @@
 #==============================================================================
 # libraries and auxiliary functions
 #==============================================================================
-library(mse)
-library(dplyr)
-library(FLa4a)
-library(FLash)
-library(FLAssess)
-library(ggplotFL)
-library(FLBRP)
-library(FLCore)
-library(MASS)
-library(FLSAM)
-library(filelock)
 
-## Install latest gadgetr
-#remotes::install_github("REDUS-IMR/gadget", ref="gadgetr")
-## Install latest MSE from a4a
-#remotes::install_github("flr/mse")
-## Performance measurement
-#library(profvis)
+
+# Install requirements
+if(!("remotes" %in% installed.packages()[,"Package"]))
+	install.packages("remotes")
+
+# Install SAM
+if(!("stockassessment" %in% installed.packages()[,"Package"]))
+	remotes::install_github("fishfollower/SAM/stockassessment", ref='components')
+
+# Install from CRAN and FLR repo
+## MSE 2.0.3
+install.packages("https://github.com/flr/R/raw/master/src/contrib/4.0/mse_2.0.3.tar.gz")
+requiredPKGS <- c("MASS", "filelock", "dplyr",
+    "mse", "FLa4a", "FLash", "FLAssess",
+    "ggplotFL", "FLBRP", "FLCore", "FLSAM")
+newPKGS <- requiredPKGS[!requiredPKGS %in% installed.packages()[,"Package"]]
+installStatus <- lapply(newPKGS, install.packages, repos=c("https://cloud.r-project.org/", "http://flr-project.org/R"))
+
+# Load requirements
+lapply(requiredPKGS, library, character.only=TRUE)
+
+# Install gadgetR (https://redus-imr.github.io/gadget/)
+if(!("gadgetr" %in% installed.packages()[,"Package"]))
+	install.packages("gadgetr", repos = c("https://cloud.r-project.org/","https://redus-imr.github.io/gadget"))
+
+# Load gadgetr
+library(gadgetr)
 
 runOneTimeline <- function(iterSim, saveRaw) {
 	
@@ -139,7 +149,7 @@ runOneTimeline <- function(iterSim, saveRaw) {
 		#==============================================================================
 		# OM object
 		#==============================================================================
-		om <- FLom(stock=stk)#, fleetBehaviour=fb)
+		om <- FLom(stock=stk, fleetBehaviour=fb)
 		#save(om, it, fy, y0, dy, iy, ny, nsqy, vy, fit, file="om.RData")
 
 		###############################################################################
@@ -301,6 +311,7 @@ allResults[[iterIndex]] <- resultFinal
 # See plot for HAD
 stk.plot <- plot(FLStocks(stk.om = allResults[[iterIndex]]$mseResults$had$mse@stock, stk.mp = allResults[[iterIndex]]$mseResults$had$sa.result$stk0)) +
 	theme(legend.position="top") + geom_vline(aes(xintercept=2000))
+print(stk.plot)
 
 # Save combination info too
 write.table(1, file=(paste0(outFileName,".info.txt")))
